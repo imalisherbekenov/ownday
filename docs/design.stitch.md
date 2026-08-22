@@ -137,6 +137,20 @@ stops reading as an achievement. On a typical screen one or two pills are accent
 When the streak is 0, **render no pill at all** — leave empty space. Never display
 "0" next to a flame icon.
 
+### Habit color is not an accent
+
+The user picks a color per habit. That is **user data, not part of the accent system**.
+
+A habit's color tints **only** its icon chip, and its own line or bar on charts that
+compare several habits. Checkboxes, progress bars, streak pills and every state
+indicator always use the system colors — success green, streak orange, neutral grey,
+error red — regardless of the habit's color. An app with purple checkmarks no longer
+reads green as "done".
+
+The habit color palette is a fixed curated set of eight, never a free color picker:
+`#1B8A62` moss, `#1C6C8C` ocean, `#3B4E9B` indigo, `#7A3E86` plum, `#A8452F` clay,
+`#B9700F` amber, `#5F7327` olive, `#4A5A63` slate.
+
 ## Typography
 
 **Hanken Grotesk** for the entire interface and all headings. Headings carry −2% to −3%
