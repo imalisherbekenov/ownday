@@ -140,7 +140,7 @@ model HabitStats {
 }
 
 model HabitTemplate {
-  id              String    @id @default(uuid()) @db.Uuid
+  id              String    @id
   title           String
   icon            String
   category        String
