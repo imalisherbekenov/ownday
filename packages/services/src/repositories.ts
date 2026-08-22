@@ -6,6 +6,7 @@ import type {
   HabitEntry,
   HabitReminder,
   HabitStats,
+  HabitTemplate,
   Identity,
   UpdateHabitInput,
   User,
@@ -26,8 +27,12 @@ export interface HabitRepository {
   findById(id: string): Promise<Habit | null>;
   listByUser(userId: string, includeArchived?: boolean): Promise<Habit[]>;
   archive(id: string, userId: string, at: Date): Promise<boolean>;
+  restore(id: string, userId: string): Promise<boolean>;
   reorder(userId: string, ids: string[]): Promise<void>;
   writeStats(stats: HabitStats): Promise<void>;
+}
+export interface TemplateRepository {
+  list(locale: "ru" | "en"): Promise<HabitTemplate[]>;
 }
 
 export interface EntryRepository {
@@ -65,6 +70,7 @@ export interface UserRepository {
     id: string,
     input: Partial<Pick<User, "timezone" | "dayStartHour" | "locale">>,
   ): Promise<User | null>;
+  delete(id: string): Promise<boolean>;
 }
 
 export interface ReminderRepository {

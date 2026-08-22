@@ -6,6 +6,7 @@ import {
   InMemoryHabitRepository,
   InMemoryReminderRepository,
   InMemoryUserRepository,
+  InMemoryTemplateRepository,
   type ServiceDependencies,
   prismaRepositories,
 } from "@ownday/services";
@@ -25,6 +26,7 @@ function createStore(): Store {
     entries: new InMemoryEntryRepository(),
     users: new InMemoryUserRepository(),
     reminders: new InMemoryReminderRepository(),
+    templates: new InMemoryTemplateRepository(),
   };
 }
 export const repositories = (globalStore.__owndayWebStore ??= createStore());

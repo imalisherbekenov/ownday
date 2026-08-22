@@ -4,6 +4,7 @@ import type {
   EntryRepository,
   ReminderRepository,
   UserRepository,
+  TemplateRepository,
 } from "./repositories.js";
 import type {
   CreateHabitInput,
@@ -14,7 +15,9 @@ import type {
   Identity,
   UpdateHabitInput,
   User,
+  HabitTemplate,
 } from "./types.js";
+import { habitTemplates } from "@ownday/db/templates";
 
 export class InMemoryHabitRepository implements HabitRepository {
   habits = new Map<string, Habit>();
@@ -43,12 +46,15 @@ export class InMemoryHabitRepository implements HabitRepository {
   async update(id: string, userId: string, i: UpdateHabitInput) {
     const h = this.habits.get(id);
     if (!h || h.userId !== userId) return null;
-    Object.assign(h, i);
-    if (i.schedule)
+    const { schedule, validFrom, ...fields } = i;
+    Object.assign(h, fields);
+    if (schedule) {
+      if (!validFrom) throw new Error("VALID_FROM_REQUIRED");
       h.scheduleVersions.push({
-        schedule: i.schedule,
-        validFrom: i.validFrom ?? new Date().toISOString().slice(0, 10),
+        schedule,
+        validFrom,
       });
+    }
     return structuredClone(h);
   }
   async findById(id: string) {
@@ -67,6 +73,12 @@ export class InMemoryHabitRepository implements HabitRepository {
     h.archivedAt = at;
     return true;
   }
+  async restore(id: string, userId: string) {
+    const h = this.habits.get(id);
+    if (!h || h.userId !== userId) return false;
+    h.archivedAt = null;
+    return true;
+  }
   async reorder(userId: string, ids: string[]) {
     ids.forEach((id, n) => {
       const h = this.habits.get(id);
@@ -75,6 +87,13 @@ export class InMemoryHabitRepository implements HabitRepository {
   }
   async writeStats(s: HabitStats) {
     this.stats.set(s.habitId, structuredClone(s));
+  }
+}
+export class InMemoryTemplateRepository implements TemplateRepository {
+  async list(locale: "ru" | "en") {
+    return habitTemplates
+      .filter((x) => x.locale === locale)
+      .map((x) => structuredClone(x)) as HabitTemplate[];
   }
 }
 export class InMemoryEntryRepository implements EntryRepository {
@@ -168,6 +187,10 @@ export class InMemoryUserRepository implements UserRepository {
     if (!u) return null;
     Object.assign(u, i);
     return structuredClone(u);
+  }
+  async delete(id: string) {
+    this.identities = this.identities.filter((x) => x.userId !== id);
+    return this.users.delete(id);
   }
 }
 export class InMemoryReminderRepository implements ReminderRepository {

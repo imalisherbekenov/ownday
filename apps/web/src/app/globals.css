@@ -21,7 +21,7 @@
 }
 @layer components {
   .page {
-    @apply mx-auto w-full max-w-content px-page pb-8;
+    @apply mx-auto w-full max-w-content px-page pb-8 lg:max-w-[900px] lg:px-8;
     padding-bottom: max(var(--space-8), env(safe-area-inset-bottom));
   }
   .card {
@@ -33,4 +33,25 @@
   .number {
     @apply font-mono tabular-nums;
   }
+  .control {
+    @apply min-h-11 w-full rounded-input border border-line bg-surface px-3 text-ink;
+  }
+  .primary {
+    @apply min-h-11 w-full rounded-input bg-ink px-4 py-3 font-bold text-surface active:scale-[.98];
+  }
+  .segments {
+    @apply grid grid-cols-3 rounded-input bg-surface-2 p-1;
+  }
+  .segment {
+    @apply min-h-11 rounded-check px-2 text-sm text-ink-3 data-[state=active]:bg-surface data-[state=active]:text-ink;
+  }
+  .switch {
+    @apply relative h-7 w-12 rounded-full bg-line data-[state=checked]:bg-done;
+  }
+  .switch-thumb {
+    @apply block h-5 w-5 translate-x-1 rounded-full bg-surface transition-transform duration-200 data-[state=checked]:translate-x-6;
+  }
+}
+:root[data-mini-app="true"] .app-header {
+  display: none;
 }

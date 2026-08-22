@@ -4,8 +4,17 @@ import type {
   HabitRepository,
   ReminderRepository,
   UserRepository,
+  TemplateRepository,
 } from "./repositories.js";
-import type { Habit, HabitEntry, HabitReminder, HabitStats, Identity, User } from "./types.js";
+import type {
+  Habit,
+  HabitEntry,
+  HabitReminder,
+  HabitStats,
+  Identity,
+  User,
+  HabitTemplate,
+} from "./types.js";
 const d = (s: string) => new Date(`${s}T00:00:00Z`),
   ld = (x: Date) => x.toISOString().slice(0, 10);
 const H = (r: any): Habit => ({
@@ -53,7 +62,8 @@ export class PrismaHabitRepository implements HabitRepository {
     const data: any = { ...i };
     delete data.schedule;
     delete data.validFrom;
-    if (i.schedule && i.validFrom)
+    if (i.schedule) {
+      if (!i.validFrom) throw new Error("VALID_FROM_REQUIRED");
       data.scheduleVersions = {
         upsert: {
           where: { habitId_validFrom: { habitId: id, validFrom: d(i.validFrom) } },
@@ -61,6 +71,7 @@ export class PrismaHabitRepository implements HabitRepository {
           update: { kind: i.schedule.kind, config: i.schedule },
         },
       };
+    }
     return H(
       await this.p.habit.update({ where: { id }, data, include: { scheduleVersions: true } }),
     );
@@ -83,6 +94,12 @@ export class PrismaHabitRepository implements HabitRepository {
       (await this.p.habit.updateMany({ where: { id, userId }, data: { archivedAt: at } })).count > 0
     );
   }
+  async restore(id: string, userId: string) {
+    return (
+      (await this.p.habit.updateMany({ where: { id, userId }, data: { archivedAt: null } })).count >
+      0
+    );
+  }
   async reorder(userId: string, ids: string[]) {
     await this.p.$transaction(
       ids.map((id, sortOrder) =>
@@ -99,6 +116,20 @@ export class PrismaHabitRepository implements HabitRepository {
       computedAt: s.computedAt,
     };
     await this.p.habitStats.upsert({ where: { habitId: s.habitId }, create: x, update: x });
+  }
+}
+export class PrismaTemplateRepository implements TemplateRepository {
+  constructor(private p: PrismaClient) {}
+  async list(locale: "ru" | "en") {
+    const rows = await this.p.habitTemplate.findMany({
+      where: { locale },
+      orderBy: [{ category: "asc" }, { title: "asc" }],
+    });
+    return rows.map((r) => ({
+      ...r,
+      defaultSchedule: r.defaultSchedule as HabitTemplate["defaultSchedule"],
+      defaultType: r.defaultType,
+    })) as HabitTemplate[];
   }
 }
 export class PrismaEntryRepository implements EntryRepository {
@@ -194,6 +225,9 @@ export class PrismaUserRepository implements UserRepository {
       ? U(await this.p.user.update({ where: { id }, data: i }))
       : null;
   }
+  async delete(id: string) {
+    return (await this.p.user.deleteMany({ where: { id } })).count > 0;
+  }
 }
 export class PrismaReminderRepository implements ReminderRepository {
   constructor(private p: PrismaClient) {}
@@ -231,4 +265,5 @@ export const prismaRepositories = (p: PrismaClient) => ({
   entries: new PrismaEntryRepository(p),
   users: new PrismaUserRepository(p),
   reminders: new PrismaReminderRepository(p),
+  templates: new PrismaTemplateRepository(p),
 });

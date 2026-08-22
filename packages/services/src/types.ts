@@ -61,6 +61,15 @@ export type HabitReminder = {
   enabled: boolean;
   nextFireAt: Date;
 };
+export type HabitTemplate = {
+  id: string;
+  title: string;
+  icon: string;
+  category: string;
+  defaultSchedule: ScheduleVersion["schedule"];
+  defaultType: HabitType;
+  locale: Locale;
+};
 
 export type CreateHabitInput = Pick<Habit, "userId" | "title" | "type"> & {
   icon?: string | undefined;

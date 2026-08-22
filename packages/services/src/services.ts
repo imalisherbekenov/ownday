@@ -12,6 +12,7 @@ import type {
   HabitRepository,
   ReminderRepository,
   UserRepository,
+  TemplateRepository,
 } from "./repositories.js";
 import type { CreateHabitInput, EntrySource, UpdateHabitInput } from "./types.js";
 
@@ -20,6 +21,7 @@ export type ServiceDependencies = {
   entries: EntryRepository;
   users: UserRepository;
   reminders: ReminderRepository;
+  templates?: TemplateRepository;
   clock?: () => Date;
 };
 
@@ -43,17 +45,36 @@ export function createServices(dependencies: ServiceDependencies) {
 
   return {
     createHabit: (input: CreateHabitInput) => dependencies.habits.create(input),
-    updateHabit: (id: string, userId: string, input: UpdateHabitInput) =>
-      dependencies.habits.update(id, userId, input),
+    async updateHabit(id: string, userId: string, input: UpdateHabitInput) {
+      if (!input.schedule || input.validFrom) {
+        return dependencies.habits.update(id, userId, input);
+      }
+      const user = await requireUser(userId);
+      return dependencies.habits.update(id, userId, {
+        ...input,
+        validFrom: localDateFor(clock(), user.timezone, user.dayStartHour),
+      });
+    },
     archiveHabit: (id: string, userId: string) => dependencies.habits.archive(id, userId, clock()),
+    restoreHabit: (id: string, userId: string) => dependencies.habits.restore(id, userId),
     reorderHabits: (userId: string, ids: string[]) => dependencies.habits.reorder(userId, ids),
     listHabits: (userId: string, includeArchived = false) =>
       dependencies.habits.listByUser(userId, includeArchived),
+    listTemplates: (locale: "ru" | "en") =>
+      dependencies.templates?.list(locale) ?? Promise.resolve([]),
+    listEntriesForUser: (userId: string, from: LocalDate, through: LocalDate) =>
+      dependencies.entries.listForUser(userId, from, through),
 
     async localDateForUser(userId: string, now: Date) {
       const user = await requireUser(userId);
       return localDateFor(now, user.timezone, user.dayStartHour);
     },
+    updateUser: (id: string, input: Parameters<UserRepository["update"]>[1]) =>
+      dependencies.users.update(id, input),
+    deleteUser: (id: string) => dependencies.users.delete(id),
+    getUser: (id: string) => dependencies.users.findById(id),
+    getUserIdentity: (id: string, provider: "telegram" | "email" | "google") =>
+      dependencies.users.findIdentityForUser(id, provider),
 
     async listHabitsForToday(userId: string, now: Date) {
       const user = await requireUser(userId);
@@ -69,7 +90,7 @@ export function createServices(dependencies: ServiceDependencies) {
           versions: habit.scheduleVersions,
           entries,
           today: localDate,
-          startedOn: habit.createdAt.toISOString().slice(0, 10),
+          startedOn: localDateFor(habit.createdAt, user.timezone, user.dayStartHour),
         });
         result.push({ habit, localDate, entry, streak });
       }
@@ -106,7 +127,7 @@ export function createServices(dependencies: ServiceDependencies) {
       const user = await requireUser(habit.userId);
       const today = localDateFor(now, user.timezone, user.dayStartHour);
       const entries = await dependencies.entries.listForHabit(habitId, today);
-      const startedOn = habit.createdAt.toISOString().slice(0, 10);
+      const startedOn = localDateFor(habit.createdAt, user.timezone, user.dayStartHour);
       const streak = computeStreak({ versions: habit.scheduleVersions, entries, today, startedOn });
       const rate = completionRate({ versions: habit.scheduleVersions, entries, today, startedOn });
       const stats = {

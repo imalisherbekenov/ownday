@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { scheduleAt } from "@ownday/core";
 import { createServices } from "./services.js";
 import {
   InMemoryEntryRepository,
@@ -6,7 +7,7 @@ import {
   InMemoryReminderRepository,
   InMemoryUserRepository,
 } from "./memory.js";
-const setup = () => {
+const setup = (clock?: () => Date) => {
   const habits = new InMemoryHabitRepository(),
     entries = new InMemoryEntryRepository(),
     users = new InMemoryUserRepository(),
@@ -16,7 +17,7 @@ const setup = () => {
     entries,
     users,
     reminders,
-    services: createServices({ habits, entries, users, reminders }),
+    services: createServices({ habits, entries, users, reminders, clock }),
   };
 };
 async function base(s: ReturnType<typeof setup>, timezone = "UTC") {
@@ -32,7 +33,7 @@ async function base(s: ReturnType<typeof setup>, timezone = "UTC") {
       schedule: { kind: "daily" },
       validFrom: "2024-01-01",
     });
-  habit.createdAt = new Date("2024-01-01T00:00:00Z");
+  habit.createdAt = new Date("2024-01-01T04:00:00Z");
   s.habits.habits.set(habit.id, habit);
   return { user, habit };
 }
@@ -133,5 +134,52 @@ describe("application services", () => {
         await s.services.advanceReminder(r.id, new Date("2024-01-01T08:01:00Z"))
       )?.nextFireAt.toISOString(),
     ).toBe("2024-01-01T09:00:00.000Z");
+  });
+
+  it("adds a schedule version without rewriting history", async () => {
+    const now = new Date("2024-02-01T12:00:00Z");
+    const s = setup(() => now);
+    const { user, habit } = await base(s);
+    const original = structuredClone(habit.scheduleVersions[0]);
+
+    const updated = await s.services.updateHabit(habit.id, user.id, {
+      schedule: { kind: "days_of_week", days: [1, 3, 5] },
+    });
+
+    expect(updated?.scheduleVersions).toHaveLength(2);
+    expect(updated?.scheduleVersions[0]).toEqual(original);
+    expect(updated?.scheduleVersions[1]).toEqual({
+      validFrom: "2024-02-01",
+      schedule: { kind: "days_of_week", days: [1, 3, 5] },
+    });
+    expect(scheduleAt(updated!.scheduleVersions, "2024-01-15")).toEqual({ kind: "daily" });
+    expect(scheduleAt(updated!.scheduleVersions, "2024-02-01")).toEqual({
+      kind: "days_of_week",
+      days: [1, 3, 5],
+    });
+  });
+
+  it("uses the owner's local habit date for validFrom and startedOn", async () => {
+    const createdAt = new Date("2024-01-01T23:30:00Z");
+    const s = setup(() => createdAt);
+    const { user, habit } = await base(s, "Asia/Tashkent");
+    habit.createdAt = createdAt;
+    s.habits.habits.set(habit.id, habit);
+
+    const updated = await s.services.updateHabit(habit.id, user.id, {
+      schedule: { kind: "daily" },
+    });
+    expect(updated?.scheduleVersions.at(-1)?.validFrom).toBe("2024-01-02");
+
+    await s.services.markEntry({
+      userId: user.id,
+      habitId: habit.id,
+      localDate: "2024-01-02",
+      status: "done",
+      source: "tg",
+      clientId: "20000000-0000-4000-8000-000000000001",
+    });
+    const stats = await s.services.getHabitStats(habit.id, new Date("2024-01-02T12:00:00Z"));
+    expect(stats.completionRate).toBe(1);
   });
 });
