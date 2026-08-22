@@ -17,11 +17,12 @@ import { StatusBar } from "expo-status-bar";
 import Svg, { Circle } from "react-native-svg";
 import { tokens } from "@ownday/tokens";
 import { clientIdFor, optimisticStreak, streakPillMode } from "./domain";
-import { apiUrl, mutationQueue, trpc, watchNetwork } from "./api";
+import { apiUrl, importWidgetMutations, mutationQueue, trpc, watchNetwork } from "./api";
 import type { Bootstrap, TodayHabit } from "./types";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
 import { queryClient } from "./query";
+import { withWidgetMark, writeWidgetSnapshot } from "./widget-snapshot";
 
 type Palette = Record<keyof typeof tokens.color.light, string>;
 const ui = tokens.typography.scale;
@@ -188,7 +189,13 @@ export function TodayScreen() {
     queryKey: ["mobile.bootstrap"],
     queryFn: () => trpc.query("mobile.bootstrap") as Promise<Bootstrap>,
   });
-  useEffect(() => watchNetwork(() => void mutationQueue.size().then(setPending)), []);
+  useEffect(() => {
+    void importWidgetMutations().then(async () => setPending(await mutationQueue.size()));
+    return watchNetwork(() => void mutationQueue.size().then(setPending));
+  }, []);
+  useEffect(() => {
+    if (query.data) void writeWidgetSnapshot(query.data);
+  }, [query.data]);
   const days = useMemo(() => ["П", "В", "С", "Ч", "П", "С", "В"], []);
   if (!hanken || !mono) return null;
   const login = async () => {
@@ -213,8 +220,7 @@ export function TodayScreen() {
             today: old.today.map((candidate) =>
               candidate.habit.id === item.habit.id
                 ? {
-                    ...candidate,
-                    entry: { localDate: item.localDate, status },
+                    ...withWidgetMark(candidate, status),
                     streak: optimisticStreak(
                       {
                         id: item.habit.id,

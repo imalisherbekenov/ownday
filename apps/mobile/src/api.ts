@@ -4,6 +4,9 @@ import { createTRPCUntypedClient, httpBatchLink } from "@trpc/client";
 import * as SecureStore from "expo-secure-store";
 import { MutationQueue } from "./mutation-queue";
 import type { QueuedMutation, QueueStorage } from "./mutation-queue";
+import { queryClient } from "./query";
+import { takeWidgetMutations, writeWidgetSnapshot } from "./widget-snapshot";
+import type { Bootstrap } from "./types";
 
 const SESSION_KEY = "ownday.session";
 const QUEUE_KEY = "ownday.mutation-queue.v1";
@@ -35,9 +38,22 @@ const queueStorage: QueueStorage = {
   save: (items) => AsyncStorage.setItem(QUEUE_KEY, JSON.stringify(items)),
 };
 
-export const mutationQueue = new MutationQueue(queueStorage, async (mutation) => {
-  await trpc.mutation("habits.mark", mutation);
-});
+const refreshSnapshot = async () => {
+  const data = queryClient.getQueryData<Bootstrap>(["mobile.bootstrap"]);
+  if (data) await writeWidgetSnapshot(data);
+};
+
+export const mutationQueue = new MutationQueue(
+  queueStorage,
+  async (mutation) => {
+    await trpc.mutation("habits.mark", mutation);
+  },
+  refreshSnapshot,
+);
+
+export async function importWidgetMutations() {
+  for (const mutation of await takeWidgetMutations()) await mutationQueue.enqueue(mutation);
+}
 
 export function watchNetwork(onPendingChange: () => void) {
   return NetInfo.addEventListener((state) => {

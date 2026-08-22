@@ -14,6 +14,7 @@ export type TodayHabit = {
   localDate: LocalDate;
   entry: (Entry & { value?: number }) | null;
   entries: Entry[];
+  entriesWithCurrent?: Entry[];
   startedOn: LocalDate;
   streak: { current: number; best: number; unit: "day" | "week" | "month" };
 };

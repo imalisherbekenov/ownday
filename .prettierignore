@@ -13,3 +13,4 @@ tsconfig.base.json
 .pnpm-cache
 .pnpm-web
 .pnpm-home
+apps/mobile/plugins/*.swift

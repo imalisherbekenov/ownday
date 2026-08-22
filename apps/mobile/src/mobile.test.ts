@@ -3,6 +3,8 @@ import { computeStreak, localDateFor } from "@ownday/core";
 import { clientIdFor, entryDateFor, optimisticStreak, streakPillMode } from "./domain";
 import { MutationQueue } from "./mutation-queue";
 import type { QueuedMutation, QueueStorage } from "./mutation-queue";
+import { serializeWidgetSnapshot, widgetMutationFor, withWidgetMark } from "./widget-snapshot";
+import type { Bootstrap, TodayHabit } from "./types";
 
 function memoryStorage(initial: QueuedMutation[] = []): QueueStorage {
   let items = structuredClone(initial);
@@ -48,6 +50,68 @@ describe("persistent mutation queue", () => {
     await queue.enqueue(mutation);
     await queue.flush();
     expect(accepted.size).toBe(1);
+  });
+});
+
+describe("widget snapshot and mutation path", () => {
+  const item: TodayHabit = {
+    habit: {
+      id: "habit-1",
+      title: "Read",
+      icon: "book",
+      color: "hue-moss",
+      type: "counter",
+      targetValue: 10,
+      unit: "pages",
+      scheduleVersions: [{ validFrom: "2026-08-19", schedule: { kind: "daily" } }],
+    },
+    localDate: "2026-08-22",
+    entry: { localDate: "2026-08-22", status: "done", value: 4 },
+    entries: [
+      { localDate: "2026-08-19", status: "done" },
+      { localDate: "2026-08-20", status: "done" },
+      { localDate: "2026-08-21", status: "skip" },
+    ],
+    startedOn: "2026-08-19",
+    streak: { current: 3, best: 3, unit: "day" },
+  };
+  const bootstrap: Bootstrap = {
+    user: { timezone: "UTC", dayStartHour: 0, locale: "en" },
+    today: [item, { ...item, localDate: "2026-08-21", habit: { ...item.habit, id: "old" } }],
+  };
+
+  it("serializes today's status, counter and computeStreak result", () => {
+    const value = JSON.parse(
+      serializeWidgetSnapshot(bootstrap, new Date("2026-08-22T12:00:00Z")),
+    ) as { habits: Array<{ done: boolean; value: number; streak: number }> };
+    expect(value.habits).toEqual([
+      { id: "habit-1", title: "Read", done: true, value: 4, target: 10, streak: 3 },
+    ]);
+  });
+
+  it("rewrites the serialized snapshot after a mark", () => {
+    const marked = { ...bootstrap, today: [withWidgetMark(item, "miss")] };
+    expect(serializeWidgetSnapshot(marked, new Date("2026-08-22T12:00:00Z"))).not.toBe(
+      serializeWidgetSnapshot(bootstrap, new Date("2026-08-22T12:00:00Z")),
+    );
+  });
+
+  it("uses the same clientId as an in-app mark", () => {
+    expect(widgetMutationFor("habit-1", "2026-08-22", false).clientId).toBe(
+      clientIdFor("habit-1", "2026-08-22"),
+    );
+  });
+
+  it("keeps an offline widget mark in the shared queue", async () => {
+    const queue = new MutationQueue(
+      memoryStorage(),
+      vi.fn(async () => {
+        throw new Error("offline");
+      }),
+    );
+    await queue.enqueue(widgetMutationFor("habit-1", "2026-08-22", false));
+    await expect(queue.flush()).rejects.toThrow("offline");
+    expect(await queue.size()).toBe(1);
   });
 });
 

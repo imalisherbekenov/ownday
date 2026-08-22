@@ -15,6 +15,7 @@ export class MutationQueue {
   constructor(
     private readonly storage: QueueStorage,
     private readonly send: (mutation: QueuedMutation) => Promise<void>,
+    private readonly onChange: () => Promise<void> | void = () => undefined,
   ) {}
 
   async enqueue(mutation: QueuedMutation) {
@@ -22,6 +23,7 @@ export class MutationQueue {
     if (!items.some((item) => item.clientId === mutation.clientId)) {
       items.push(mutation);
       await this.storage.save(items);
+      await this.onChange();
     }
   }
 
@@ -39,6 +41,7 @@ export class MutationQueue {
         (candidate) => candidate.clientId !== item.clientId,
       );
       await this.storage.save(remaining);
+      await this.onChange();
     }
   }
 
