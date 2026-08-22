@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Morning Meditation - Habit Detail</title>
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Hanken Grotesk & JetBrains Mono -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Config injected from Design System -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error-container": "#ffdad6",
+                        "tertiary": "#535e5a",
+                        "primary-fixed-dim": "#76daab",
+                        "on-primary": "#ffffff",
+                        "on-background": "#191c1a",
+                        "tertiary-fixed-dim": "#bec9c4",
+                        "secondary-fixed": "#ffdcbd",
+                        "primary": "#006948",
+                        "surface-dim": "#E8EDE5",
+                        "outline": "#6E8078",
+                        "on-secondary-container": "#6f4000",
+                        "background": "#f7faf5",
+                        "on-primary-container": "#f5fff7",
+                        "surface-bright": "#FFFFFF",
+                        "surface-container-lowest": "#ffffff",
+                        "outline-variant": "#bdcac0",
+                        "secondary-container": "#fea949",
+                        "on-surface-variant": "#3e4943",
+                        "surface-container-highest": "#e0e3de",
+                        "on-error": "#ffffff",
+                        "inverse-primary": "#76daab",
+                        "on-secondary": "#ffffff",
+                        "surface": "#f7faf5",
+                        "surface-container": "#ecefea",
+                        "inverse-on-surface": "#eff2ed",
+                        "ink": "#101A17",
+                        "on-surface": "#191c1a",
+                        "surface-container-low": "#f1f4ef",
+                        "primary-fixed": "#92f6c6",
+                        "on-primary-fixed": "#002114",
+                        "surface-tint": "#006c4a",
+                        "on-error-container": "#93000a",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-high": "#e6e9e4",
+                        "inverse-surface": "#2d312e",
+                        "secondary-fixed-dim": "#ffb86e",
+                        "error": "#AF4034",
+                        "tertiary-fixed": "#dae5e0",
+                        "tertiary-container": "#6c7773",
+                        "on-secondary-fixed": "#2c1600",
+                        "secondary": "#8a5100",
+                        "on-tertiary-fixed-variant": "#3e4945",
+                        "on-primary-fixed-variant": "#005237",
+                        "on-tertiary-fixed": "#141e1a",
+                        "primary-container": "#10855d",
+                        "surface-variant": "#e0e3de",
+                        "success-dark": "#38C68D",
+                        "on-tertiary-container": "#f4fffa",
+                        "on-secondary-fixed-variant": "#693c00",
+                        "streak-dark": "#E8A33D",
+                        "success": "#1B8A62", // Added from spec
+                        "streak": "#B9700F"   // Added from spec
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px",
+                        "card": "14px",      // Added from spec
+                        "btn": "10px",       // Added from spec
+                        "heatmap": "2.5px"   // Added from spec
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "md": "12px",
+                        "xl": "24px",
+                        "margin-page": "20px",
+                        "sm": "8px",
+                        "xxl": "32px",
+                        "unit": "4px",
+                        "max-width": "640px",
+                        "huge": "48px",
+                        "lg": "16px",
+                        "heatmap-cell": "11px", // Added from spec
+                        "heatmap-gap": "3px"    // Added from spec
+                    },
+                    "fontFamily": {
+                        "counter-sm": ["JetBrains Mono"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "body-sm": ["Hanken Grotesk"],
+                        "label-caps": ["Hanken Grotesk"],
+                        "counter-lg": ["JetBrains Mono"],
+                        "title-sm": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "counter-sm": ["14px", {"lineHeight": "18px", "letterSpacing": "0em", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "500"}],
+                        "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.03em", "fontWeight": "800"}],
+                        "body-sm": ["13px", {"lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.14em", "fontWeight": "700"}],
+                        "counter-lg": ["20px", {"lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600"}],
+                        "title-sm": ["19px", {"lineHeight": "26px", "letterSpacing": "-0.01em", "fontWeight": "700"}]
+                    },
+                    "boxShadow": {
+                        "system": "0 1px 2px rgba(16,26,23,.05), 0 4px 12px rgba(16,26,23,.05)",
+                        "system-pressed": "0 1px 2px rgba(16,26,23,.08), 0 2px 4px rgba(16,26,23,.05)"
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* Specific Heatmap Colors */
+        .hm-0 { background-color: #E8EDE5; }
+        .hm-1 { background-color: #B4DFCD; } /* Interpolated approx */
+        .hm-2 { background-color: #82C5A9; }
+        .hm-3 { background-color: #4FAA84; }
+        .hm-4 { background-color: #1B8A62; }
+        
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        body {
+            background-color: #F3F6F1; /* Base Layer */
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-on-background antialiased selection:bg-primary selection:text-on-primary">
+<div class="max-w-max-width mx-auto min-h-screen flex flex-col relative pb-huge">
+<!-- Header from JSON TopAppBar -->
+<header class="flex items-center justify-between px-margin-page h-huge w-full sticky top-0 bg-surface z-10">
+<button class="text-primary hover:opacity-80 active:scale-95 transition-transform p-unit -ml-unit flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<div class="font-headline-md text-headline-md text-ink text-center flex-1">Habit Tracker</div>
+<button class="text-primary hover:opacity-80 active:scale-95 transition-transform p-unit -mr-unit font-label-caps text-label-caps uppercase">
+                Edit
+            </button>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col gap-xl px-margin-page py-lg">
+<!-- Contextual Header: Morning Meditation -->
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-surface-dim flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">self_improvement</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md text-ink">Morning Meditation</h1>
+<span class="font-body-sm text-body-sm text-outline">Daily</span>
+</div>
+</div>
+<!-- Hero Block -->
+<div class="flex items-end justify-between border-b border-surface-container-highest pb-lg">
+<div>
+<div class="flex items-baseline gap-xs">
+<span class="font-counter-lg text-[48px] leading-[48px] font-bold text-streak tracking-tighter">14</span>
+</div>
+<span class="font-label-caps text-label-caps text-outline uppercase tracking-widest mt-unit block">day streak</span>
+</div>
+<div class="flex flex-col gap-unit text-right">
+<div class="flex justify-end gap-sm items-center">
+<span class="font-label-caps text-label-caps text-outline uppercase">Best</span>
+<span class="font-counter-lg text-counter-lg text-ink tabular-nums">41</span>
+</div>
+<div class="flex justify-end gap-sm items-center">
+<span class="font-label-caps text-label-caps text-outline uppercase">Completion</span>
+<span class="font-counter-lg text-counter-lg text-ink tabular-nums">87%</span>
+</div>
+</div>
+</div>
+<!-- Year Heatmap -->
+<section class="flex flex-col gap-sm">
+<div class="overflow-x-auto pb-sm hide-scrollbar">
+<div class="flex gap-heatmap-gap">
+<!-- Heatmap Grid (7 rows x 26 cols approx for half year demo) -->
+<div class="grid grid-rows-7 grid-flow-col gap-heatmap-gap" id="heatmap-container">
+<!-- JS will populate -->
+</div>
+</div>
+</div>
+<div class="flex justify-end items-center gap-unit text-[10px] uppercase font-bold tracking-widest text-outline">
+<span>Less</span>
+<div class="flex gap-heatmap-gap">
+<div class="w-[11px] h-[11px] rounded-[2.5px] hm-0"></div>
+<div class="w-[11px] h-[11px] rounded-[2.5px] hm-1"></div>
+<div class="w-[11px] h-[11px] rounded-[2.5px] hm-2"></div>
+<div class="w-[11px] h-[11px] rounded-[2.5px] hm-3"></div>
+<div class="w-[11px] h-[11px] rounded-[2.5px] hm-4"></div>
+</div>
+<span>More</span>
+</div>
+</section>
+<!-- This Week Strip -->
+<section class="bg-surface-bright rounded-card shadow-system p-md">
+<h3 class="font-label-caps text-label-caps text-outline uppercase mb-md">This Week</h3>
+<div class="flex justify-between">
+<!-- Days -->
+<div class="flex flex-col items-center gap-sm">
+<span class="font-label-caps text-label-caps text-outline">M</span>
+<div class="w-8 h-8 rounded-full bg-success flex items-center justify-center text-white"><span class="material-symbols-outlined text-[16px]">check</span></div>
+</div>
+<div class="flex flex-col items-center gap-sm">
+<span class="font-label-caps text-label-caps text-outline">T</span>
+<div class="w-8 h-8 rounded-full bg-success flex items-center justify-center text-white"><span class="material-symbols-outlined text-[16px]">check</span></div>
+</div>
+<div class="flex flex-col items-center gap-sm">
+<span class="font-label-caps text-label-caps text-outline">W</span>
+<div class="w-8 h-8 rounded-full border-2 border-error flex items-center justify-center text-error"><span class="material-symbols-outlined text-[16px]">close</span></div>
+</div>
+<div class="flex flex-col items-center gap-sm">
+<span class="font-label-caps text-label-caps text-outline relative">
+<span class="absolute -top-1 -right-2 w-[4px] h-[4px] rounded-full bg-ink"></span>
+                            T
+                        </span>
+<div class="w-8 h-8 rounded-full bg-surface-dim flex items-center justify-center"></div>
+</div>
+<div class="flex flex-col items-center gap-sm">
+<span class="font-label-caps text-label-caps text-outline">F</span>
+<div class="w-8 h-8 rounded-full bg-surface-dim flex items-center justify-center"></div>
+</div>
+<div class="flex flex-col items-center gap-sm">
+<span class="font-label-caps text-label-caps text-outline">S</span>
+<div class="w-8 h-8 rounded-full bg-surface-dim flex items-center justify-center"></div>
+</div>
+<div class="flex flex-col items-center gap-sm">
+<span class="font-label-caps text-label-caps text-outline">S</span>
+<div class="w-8 h-8 rounded-full bg-surface-dim flex items-center justify-center"></div>
+</div>
+</div>
+</section>
+<!-- Stats Card -->
+<section class="bg-surface-bright rounded-card shadow-system p-md flex flex-col gap-lg">
+<div class="flex justify-between">
+<div>
+<span class="font-label-caps text-label-caps text-outline uppercase block mb-unit">This month</span>
+<span class="font-counter-lg text-counter-lg text-ink tabular-nums">24/28</span>
+</div>
+<div class="text-right">
+<span class="font-label-caps text-label-caps text-outline uppercase block mb-unit">Skipped</span>
+<span class="font-counter-lg text-counter-lg text-ink tabular-nums">2</span>
+</div>
+<div class="text-right">
+<span class="font-label-caps text-label-caps text-outline uppercase block mb-unit">Missed</span>
+<span class="font-counter-lg text-counter-lg text-error tabular-nums">2</span>
+</div>
+</div>
+<!-- Horizontal Bar Chart -->
+<div>
+<span class="font-label-caps text-label-caps text-outline uppercase block mb-sm">Completion by Day</span>
+<div class="flex flex-col gap-unit">
+<div class="flex items-center gap-sm text-[10px] font-bold text-outline">
+<span class="w-3">M</span><div class="h-1.5 bg-success rounded-full flex-1"><div class="h-full bg-success rounded-full w-[90%]"></div></div>
+</div>
+<div class="flex items-center gap-sm text-[10px] font-bold text-outline">
+<span class="w-3">T</span><div class="h-1.5 bg-surface-dim rounded-full flex-1"><div class="h-full bg-success rounded-full w-[85%]"></div></div>
+</div>
+<div class="flex items-center gap-sm text-[10px] font-bold text-outline">
+<span class="w-3">W</span><div class="h-1.5 bg-surface-dim rounded-full flex-1"><div class="h-full bg-success rounded-full w-[70%]"></div></div>
+</div>
+<div class="flex items-center gap-sm text-[10px] font-bold text-outline">
+<span class="w-3">T</span><div class="h-1.5 bg-surface-dim rounded-full flex-1"><div class="h-full bg-success rounded-full w-[95%]"></div></div>
+</div>
+<div class="flex items-center gap-sm text-[10px] font-bold text-outline">
+<span class="w-3">F</span><div class="h-1.5 bg-surface-dim rounded-full flex-1"><div class="h-full bg-success rounded-full w-[60%]"></div></div>
+</div>
+<div class="flex items-center gap-sm text-[10px] font-bold text-outline">
+<span class="w-3">S</span><div class="h-1.5 bg-surface-dim rounded-full flex-1"><div class="h-full bg-success rounded-full w-[40%]"></div></div>
+</div>
+<div class="flex items-center gap-sm text-[10px] font-bold text-outline">
+<span class="w-3">S</span><div class="h-1.5 bg-surface-dim rounded-full flex-1"><div class="h-full bg-success rounded-full w-[30%]"></div></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Notes List -->
+<section class="bg-surface-bright rounded-card shadow-system flex flex-col">
+<div class="p-md border-b border-surface-container-highest flex items-start gap-md">
+<span class="font-counter-sm text-counter-sm text-outline tabular-nums pt-0.5">10.24</span>
+<p class="font-body-md text-body-md text-ink flex-1 leading-snug">Felt very distracted today. Mind kept wandering to work.</p>
+<span class="w-2 h-2 rounded-full bg-success mt-1.5"></span>
+</div>
+<div class="p-md border-b border-surface-container-highest flex items-start gap-md">
+<span class="font-counter-sm text-counter-sm text-outline tabular-nums pt-0.5">10.22</span>
+<p class="font-body-md text-body-md text-ink flex-1 leading-snug">Deep session. 15 minutes felt like 5.</p>
+<span class="w-2 h-2 rounded-full bg-success mt-1.5"></span>
+</div>
+<div class="p-md flex items-start gap-md">
+<span class="font-counter-sm text-counter-sm text-outline tabular-nums pt-0.5">10.18</span>
+<p class="font-body-md text-body-md text-ink flex-1 leading-snug">Skipped because I overslept.</p>
+<span class="w-2 h-2 rounded-full bg-error mt-1.5"></span>
+</div>
+</section>
+</main>
+<!-- Bottom Actions -->
+<div class="px-margin-page pb-xl flex flex-col gap-md pt-lg">
+<button class="w-full bg-ink text-white font-title-sm text-title-sm py-4 rounded-btn active:scale-[0.98] transition-transform flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined text-[20px]">done</span>
+                Mark as done today
+            </button>
+<button class="w-full text-center font-body-sm text-body-sm text-outline hover:text-ink transition-colors">
+                Archive habit
+            </button>
+</div>
+</div>
+<script>
+        // Generate Heatmap Data
+        const container = document.getElementById('heatmap-container');
+        const rows = 7;
+        const cols = 26;
+        
+        for (let i = 0; i < cols; i++) {
+            for (let j = 0; j < rows; j++) {
+                const cell = document.createElement('div');
+                cell.className = 'w-[11px] h-[11px] rounded-[2.5px] transition-colors duration-300';
+                
+                // Randomize for visual effect, weighting heavily towards success
+                const rand = Math.random();
+                let hmClass = 'hm-0';
+                if (rand > 0.8) hmClass = 'hm-4';
+                else if (rand > 0.6) hmClass = 'hm-3';
+                else if (rand > 0.4) hmClass = 'hm-2';
+                else if (rand > 0.2) hmClass = 'hm-1';
+                
+                cell.classList.add(hmClass);
+                container.appendChild(cell);
+            }
+        }
+    </script>
+</body></html>

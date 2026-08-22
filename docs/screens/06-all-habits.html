@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>My Habits Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700;800&amp;family=JetBrains+Mono:wght@500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "on-secondary-fixed": "#2c1600",
+                "outline-variant": "#D4DDD5",
+                "inverse-primary": "#76daab",
+                "on-background": "#191c1a",
+                "on-tertiary-fixed-variant": "#3e4945",
+                "on-surface-variant": "#3e4943",
+                "secondary": "#8a5100",
+                "tertiary-container": "#6c7773",
+                "secondary-container": "#fea949",
+                "on-tertiary-container": "#f4fffa",
+                "on-error": "#ffffff",
+                "tertiary-fixed-dim": "#bec9c4",
+                "ink": "#101A17",
+                "on-tertiary": "#ffffff",
+                "on-primary": "#ffffff",
+                "surface-container": "#ecefea",
+                "error": "#AF4034",
+                "secondary-fixed": "#ffdcbd",
+                "surface-container-low": "#f1f4ef",
+                "on-tertiary-fixed": "#141e1a",
+                "on-secondary": "#ffffff",
+                "background": "#f7faf5",
+                "inverse-surface": "#2d312e",
+                "on-primary-fixed": "#002114",
+                "surface-bright": "#FFFFFF",
+                "on-primary-fixed-variant": "#005237",
+                "inverse-on-surface": "#eff2ed",
+                "on-primary-container": "#f5fff7",
+                "success-dark": "#38C68D",
+                "primary-fixed-dim": "#76daab",
+                "outline": "#6E8078",
+                "primary-fixed": "#92f6c6",
+                "primary-container": "#10855d",
+                "error-container": "#ffdad6",
+                "tertiary-fixed": "#dae5e0",
+                "streak-dark": "#E8A33D",
+                "surface-variant": "#e0e3de",
+                "on-error-container": "#93000a",
+                "surface-container-high": "#e6e9e4",
+                "surface-container-lowest": "#ffffff",
+                "surface": "#f7faf5",
+                "on-surface": "#191c1a",
+                "on-secondary-fixed-variant": "#693c00",
+                "surface-dim": "#d8dbd6",
+                "tertiary": "#535e5a",
+                "surface-container-highest": "#e0e3de",
+                "on-secondary-container": "#6f4000",
+                "secondary-fixed-dim": "#ffb86e",
+                "surface-tint": "#006c4a",
+                "primary": "#006948"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {
+                "unit": "4px",
+                "xs": "4px",
+                "lg": "16px",
+                "max-width": "640px",
+                "xl": "24px",
+                "margin-page": "20px",
+                "xxl": "32px",
+                "sm": "8px",
+                "md": "12px",
+                "huge": "48px"
+        },
+        "fontFamily": {
+                "display-lg": [
+                        "Hanken Grotesk"
+                ],
+                "body-md": [
+                        "Hanken Grotesk"
+                ],
+                "body-sm": [
+                        "Hanken Grotesk"
+                ],
+                "label-caps": [
+                        "Hanken Grotesk"
+                ],
+                "title-sm": [
+                        "Hanken Grotesk"
+                ],
+                "headline-md": [
+                        "Hanken Grotesk"
+                ],
+                "counter-lg": [
+                        "JetBrains Mono"
+                ],
+                "counter-sm": [
+                        "JetBrains Mono"
+                ]
+        },
+        "fontSize": {
+                "display-lg": [
+                        "32px",
+                        {
+                                "lineHeight": "40px",
+                                "letterSpacing": "-0.03em",
+                                "fontWeight": "800"
+                        }
+                ],
+                "body-md": [
+                        "16px",
+                        {
+                                "lineHeight": "24px",
+                                "letterSpacing": "0em",
+                                "fontWeight": "500"
+                        }
+                ],
+                "body-sm": [
+                        "13px",
+                        {
+                                "lineHeight": "18px",
+                                "letterSpacing": "0.01em",
+                                "fontWeight": "400"
+                        }
+                ],
+                "label-caps": [
+                        "12px",
+                        {
+                                "lineHeight": "16px",
+                                "letterSpacing": "0.14em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "title-sm": [
+                        "19px",
+                        {
+                                "lineHeight": "26px",
+                                "letterSpacing": "-0.01em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "headline-md": [
+                        "24px",
+                        {
+                                "lineHeight": "32px",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "counter-lg": [
+                        "20px",
+                        {
+                                "lineHeight": "24px",
+                                "letterSpacing": "0em",
+                                "fontWeight": "600"
+                        }
+                ],
+                "counter-sm": [
+                        "14px",
+                        {
+                                "lineHeight": "18px",
+                                "letterSpacing": "0em",
+                                "fontWeight": "500"
+                        }
+                ]
+        }
+},
+    },
+  }
+</script>
+<style>
+    .streak-pill-high { background-color: #FAE9CE; color: #B9700F; }
+    .streak-pill-low { background-color: #E8EDE5; color: #6E8078; }
+</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background antialiased selection:bg-surface-variant selection:text-ink min-h-screen pb-huge">
+<!-- Top App Bar - Derived Context -->
+<div class="bg-surface dark:bg-surface w-full top-0 sticky z-40 transition-transform duration-100 flex justify-between items-center px-margin-page py-sm w-full max-w-max-width mx-auto">
+<div class="flex items-center gap-md">
+<!-- Replaced leading menu with derived title -->
+<span class="font-headline-md text-headline-md text-ink font-bold tracking-tight">My habits</span>
+</div>
+<div class="flex items-center gap-md text-ink">
+<button class="hover:bg-surface-variant p-sm rounded-full active:scale-95 transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">search</span>
+</button>
+<button class="hover:bg-surface-variant p-sm rounded-full active:scale-95 transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">add</span>
+</button>
+</div>
+</div>
+<main class="max-w-max-width mx-auto px-margin-page pt-md pb-xl flex flex-col gap-xl">
+<!-- Segmented Control -->
+<div class="flex bg-surface-container-high rounded-lg p-unit">
+<button class="flex-1 py-sm rounded bg-surface shadow-[0_1px_2px_rgba(16,26,23,.05)] font-body-sm text-body-sm text-ink text-center active:scale-[0.98] transition-transform">
+            Active <span class="font-counter-sm text-counter-sm ml-xs">6</span>
+</button>
+<button class="flex-1 py-sm rounded font-body-sm text-body-sm text-outline text-center hover:bg-surface-variant active:scale-[0.98] transition-transform">
+            Archived <span class="font-counter-sm text-counter-sm ml-xs">3</span>
+</button>
+</div>
+<!-- Habit List Card -->
+<div class="bg-surface-bright rounded-[14px] shadow-[0_1px_2px_rgba(16,26,23,.05),0_4px_12px_rgba(16,26,23,.05)] flex flex-col">
+<!-- Row 1 -->
+<div class="flex items-center p-md gap-md border-b border-outline-variant hover:bg-surface-container-low transition-colors group cursor-grab active:cursor-grabbing">
+<div class="text-outline-variant group-hover:text-outline transition-colors flex flex-col gap-[2px]">
+<div class="w-lg h-[2px] bg-current rounded-full"></div>
+<div class="w-lg h-[2px] bg-current rounded-full"></div>
+<div class="w-lg h-[2px] bg-current rounded-full"></div>
+</div>
+<div class="w-[40px] h-[40px] rounded-full bg-surface-container flex items-center justify-center text-outline">
+<span class="material-symbols-outlined">fitness_center</span>
+</div>
+<div class="flex-1 flex flex-col">
+<span class="font-body-md text-body-md text-ink leading-tight">Morning Workout</span>
+<span class="font-body-sm text-body-sm text-outline">Every day</span>
+</div>
+<div class="streak-pill-high px-md py-[2px] rounded-full flex items-center gap-xs">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+<span class="font-counter-sm text-counter-sm">14</span>
+</div>
+</div>
+<!-- Row 2 -->
+<div class="flex items-center p-md gap-md border-b border-outline-variant hover:bg-surface-container-low transition-colors group cursor-grab active:cursor-grabbing">
+<div class="text-outline-variant group-hover:text-outline transition-colors flex flex-col gap-[2px]">
+<div class="w-lg h-[2px] bg-current rounded-full"></div>
+<div class="w-lg h-[2px] bg-current rounded-full"></div>
+<div class="w-lg h-[2px] bg-current rounded-full"></div>
+</div>
+<div class="w-[40px] h-[40px] rounded-full bg-surface-container flex items-center justify-center text-outline">
+<span class="material-symbols-outlined">menu_book</span>
+</div>
+<div class="flex-1 flex flex-col">
+<span class="font-body-md text-body-md text-ink leading-tight">Read 20 pages</span>
+<span class="font-body-sm text-body-sm text-outline">Every day</span>
+</div>
+<div class="streak-pill-high px-md py-[2px] rounded-full flex items-center gap-xs">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+<span class="font-counter-sm text-counter-sm">8</span>
+</div>
+</div>
+<!-- Row 3 -->
+<div class="flex items-center p-md gap-md border-b border-outline-variant hover:bg-surface-container-low transition-colors group cursor-grab active:cursor-grabbing">
+<div class="text-outline-variant group-hover:text-outline transition-colors flex flex-col gap-[2px]">
+<div class="w-lg h-[2px] bg-current rounded-full"></div>
+<div class="w-lg h-[2px] bg-current rounded-full"></div>
+<div class="w-lg h-[2px] bg-current rounded-full"></div>
+</div>
+<div class="w-[40px] h-[40px] rounded-full bg-surface-container flex items-center justify-center text-outline">
+<span class="material-symbols-outlined">water_drop</span>
+</div>
+<div class="flex-1 flex flex-col">
+<span class="font-body-md text-body-md text-ink leading-tight">Drink Water</span>
+<span class="font-body-sm text-body-sm text-outline">Mon, Wed, Fri</span>
+</div>
+</div>
+<!-- Row 4 -->
+<div class="flex items-center p-md gap-md border-b border-outline-variant hover:bg-surface-container-low transition-colors group cursor-grab active:cursor-grabbing">
+<div class="text-outline-variant group-hover:text-outline transition-colors flex flex-col gap-[2px]">
+<div class="w-lg h-[2px] bg-current rounded-full"></div>
+<div class="w-lg h-[2px] bg-current rounded-full"></div>
+<div class="w-lg h-[2px] bg-current rounded-full"></div>
+</div>
+<div class="w-[40px] h-[40px] rounded-full bg-surface-container flex items-center justify-center text-outline">
+<span class="material-symbols-outlined">self_improvement</span>
+</div>
+<div class="flex-1 flex flex-col">
+<span class="font-body-md text-body-md text-ink leading-tight">Meditate</span>
+<span class="font-body-sm text-body-sm text-outline">Every day</span>
+</div>
+<div class="streak-pill-low px-md py-[2px] rounded-full flex items-center gap-xs">
+<span class="material-symbols-outlined text-[14px]">local_fire_department</span>
+<span class="font-counter-sm text-counter-sm">2</span>
+</div>
+</div>
+<!-- Row 5 -->
+<div class="flex items-center p-md gap-md border-b border-outline-variant hover:bg-surface-container-low transition-colors group cursor-grab active:cursor-grabbing">
+<div class="text-outline-variant group-hover:text-outline transition-colors flex flex-col gap-[2px]">
+<div class="w-lg h-[2px] bg-current rounded-full"></div>
+<div class="w-lg h-[2px] bg-current rounded-full"></div>
+<div class="w-lg h-[2px] bg-current rounded-full"></div>
+</div>
+<div class="w-[40px] h-[40px] rounded-full bg-surface-container flex items-center justify-center text-outline">
+<span class="material-symbols-outlined">language</span>
+</div>
+<div class="flex-1 flex flex-col">
+<span class="font-body-md text-body-md text-ink leading-tight">Practice Spanish</span>
+<span class="font-body-sm text-body-sm text-outline">Tue, Thu</span>
+</div>
+</div>
+<!-- Row 6 -->
+<div class="flex items-center p-md gap-md hover:bg-surface-container-low transition-colors rounded-b-[14px] group cursor-grab active:cursor-grabbing">
+<div class="text-outline-variant group-hover:text-outline transition-colors flex flex-col gap-[2px]">
+<div class="w-lg h-[2px] bg-current rounded-full"></div>
+<div class="w-lg h-[2px] bg-current rounded-full"></div>
+<div class="w-lg h-[2px] bg-current rounded-full"></div>
+</div>
+<div class="w-[40px] h-[40px] rounded-full bg-surface-container flex items-center justify-center text-outline">
+<span class="material-symbols-outlined">edit_note</span>
+</div>
+<div class="flex-1 flex flex-col">
+<span class="font-body-md text-body-md text-ink leading-tight">Journal</span>
+<span class="font-body-sm text-body-sm text-outline">Every evening</span>
+</div>
+<div class="streak-pill-low px-md py-[2px] rounded-full flex items-center gap-xs">
+<span class="material-symbols-outlined text-[14px]">local_fire_department</span>
+<span class="font-counter-sm text-counter-sm">4</span>
+</div>
+</div>
+</div>
+<!-- Reorder Caption -->
+<div class="text-center font-body-sm text-body-sm text-outline mt-[-8px]">
+        Drag to reorder
+    </div>
+<!-- Primary Action Button -->
+<button class="w-full bg-ink text-on-primary font-body-md text-body-md py-[12px] rounded-[10px] active:scale-[0.98] transition-transform mt-sm shadow-[0_1px_2px_rgba(16,26,23,.05),0_4px_12px_rgba(16,26,23,.05)]">
+        Add habit
+    </button>
+</main>
+<!-- BottomNavBar -->
+<nav class="bg-surface dark:bg-surface fixed bottom-0 w-full z-50 flex justify-around items-center h-huge w-full px-lg max-w-max-width mx-auto md:hidden">
+<button class="flex flex-col items-center justify-center text-outline dark:text-outline-variant hover:opacity-80 active:scale-[0.98] transition-all duration-150">
+<span class="material-symbols-outlined mb-xs text-[24px]">check_circle</span>
+<span class="font-label-caps text-label-caps text-[10px]">Today</span>
+</button>
+<button class="flex flex-col items-center justify-center text-outline dark:text-outline-variant hover:opacity-80 active:scale-[0.98] transition-all duration-150">
+<span class="material-symbols-outlined mb-xs text-[24px]">trending_up</span>
+<span class="font-label-caps text-label-caps text-[10px]">Trends</span>
+</button>
+<!-- Library Active state logic applied based on intent -->
+<button class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed hover:opacity-80 active:scale-[0.98] transition-all duration-150">
+<span class="material-symbols-outlined mb-xs text-[24px]" style="font-variation-settings: 'FILL' 1;">book</span>
+<span class="font-label-caps text-label-caps text-[10px]">Library</span>
+</button>
+<button class="flex flex-col items-center justify-center text-outline dark:text-outline-variant hover:opacity-80 active:scale-[0.98] transition-all duration-150">
+<span class="material-symbols-outlined mb-xs text-[24px]">person</span>
+<span class="font-label-caps text-label-caps text-[10px]">Profile</span>
+</button>
+</nav>
+<!-- Desktop Nav Spacer to prevent content hiding behind fixed top nav if needed -->
+<!-- Handled by max-w container constraints -->
+</body></html>

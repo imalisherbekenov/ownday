@@ -1,0 +1,140 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum IdentityProvider {
+  telegram
+  email
+  google
+}
+enum HabitType {
+  binary
+  counter
+  duration
+}
+enum EntryStatus {
+  done
+  skip
+  miss
+}
+enum EntrySource {
+  web
+  tg
+  mobile
+  widget
+}
+enum ReminderChannel {
+  tg
+  push
+}
+
+model User {
+  id           String      @id @default(uuid()) @db.Uuid
+  timezone     String
+  dayStartHour Int         @default(4)
+  locale       String
+  createdAt    DateTime    @default(now())
+  identities   Identity[]
+  habits       Habit[]
+  entries      Entry[]
+  reminders    Reminder[]
+}
+
+model Identity {
+  id         String           @id @default(uuid()) @db.Uuid
+  userId     String           @db.Uuid
+  provider   IdentityProvider
+  externalId String
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, externalId])
+  @@index([userId])
+}
+
+model Habit {
+  id               String            @id @default(uuid()) @db.Uuid
+  userId           String            @db.Uuid
+  title            String
+  icon             String
+  color            String
+  category         String
+  type             HabitType
+  targetValue      Decimal?          @db.Decimal(12, 3)
+  unit             String?
+  sortOrder        Int               @default(0)
+  archivedAt       DateTime?
+  createdAt        DateTime          @default(now())
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scheduleVersions ScheduleVersion[]
+  entries          Entry[]
+  reminders        Reminder[]
+  stats            HabitStats?
+  @@index([userId, archivedAt])
+}
+
+model ScheduleVersion {
+  id        String   @id @default(uuid()) @db.Uuid
+  habitId   String   @db.Uuid
+  kind      String
+  config    Json
+  validFrom DateTime @db.Date
+  habit     Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  @@unique([habitId, validFrom])
+}
+
+model Entry {
+  id        String      @id @default(uuid()) @db.Uuid
+  habitId   String      @db.Uuid
+  userId    String      @db.Uuid
+  localDate DateTime    @db.Date
+  value     Decimal?    @db.Decimal(12, 3)
+  status    EntryStatus
+  source    EntrySource
+  clientId  String      @db.Uuid
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  habit     Habit       @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([habitId, localDate])
+  @@unique([clientId])
+  @@index([userId, localDate])
+}
+
+model Reminder {
+  id         String          @id @default(uuid()) @db.Uuid
+  userId     String          @db.Uuid
+  habitId    String?         @db.Uuid
+  localTime  DateTime        @db.Time(0)
+  daysMask   Int
+  channel    ReminderChannel
+  enabled    Boolean         @default(true)
+  nextFireAt DateTime
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  habit      Habit?          @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  @@index([userId])
+}
+
+model HabitStats {
+  habitId        String   @id @db.Uuid
+  currentStreak  Int
+  bestStreak     Int
+  completionRate Float?
+  computedAt     DateTime
+  habit           Habit   @relation(fields: [habitId], references: [id], onDelete: Cascade)
+}
+
+model HabitTemplate {
+  id              String    @id @default(uuid()) @db.Uuid
+  title           String
+  icon            String
+  category        String
+  defaultSchedule Json
+  defaultType     HabitType
+  locale          String
+  @@index([locale, category])
+}

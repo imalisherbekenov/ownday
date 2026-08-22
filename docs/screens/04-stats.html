@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Statistics - Habit Tracker</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700;800&amp;family=JetBrains+Mono:wght@500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "inverse-primary": "#76daab",
+                      "surface-dim": "#E8EDE5",
+                      "on-tertiary-container": "#f4fffa",
+                      "on-secondary-fixed": "#2c1600",
+                      "background": "#f7faf5",
+                      "on-secondary": "#ffffff",
+                      "on-error": "#ffffff",
+                      "primary-fixed": "#92f6c6",
+                      "outline-variant": "#D4DDD5",
+                      "secondary": "#8a5100",
+                      "on-tertiary-fixed-variant": "#3e4945",
+                      "on-surface-variant": "#3e4943",
+                      "tertiary-container": "#6c7773",
+                      "surface-container-low": "#f1f4ef",
+                      "tertiary-fixed-dim": "#bec9c4",
+                      "on-surface": "#191c1a",
+                      "secondary-fixed": "#ffdcbd",
+                      "primary-fixed-dim": "#76daab",
+                      "primary-container": "#10855d",
+                      "streak-dark": "#E8A33D",
+                      "secondary-fixed-dim": "#ffb86e",
+                      "on-primary-container": "#f5fff7",
+                      "on-background": "#191c1a",
+                      "inverse-on-surface": "#eff2ed",
+                      "primary": "#006948",
+                      "on-primary-fixed-variant": "#005237",
+                      "inverse-surface": "#2d312e",
+                      "tertiary-fixed": "#dae5e0",
+                      "tertiary": "#535e5a",
+                      "surface-tint": "#006c4a",
+                      "error": "#AF4034",
+                      "error-container": "#ffdad6",
+                      "on-tertiary": "#ffffff",
+                      "surface-variant": "#e0e3de",
+                      "surface-container": "#ecefea",
+                      "surface": "#f7faf5",
+                      "on-tertiary-fixed": "#141e1a",
+                      "surface-bright": "#FFFFFF",
+                      "surface-container-lowest": "#ffffff",
+                      "success-dark": "#38C68D",
+                      "secondary-container": "#fea949",
+                      "on-error-container": "#93000a",
+                      "ink": "#101A17",
+                      "outline": "#6E8078",
+                      "on-secondary-fixed-variant": "#693c00",
+                      "surface-container-high": "#e6e9e4",
+                      "on-primary-fixed": "#002114",
+                      "surface-container-highest": "#e0e3de",
+                      "on-secondary-container": "#6f4000",
+                      "on-primary": "#ffffff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "sm": "8px",
+                      "md": "12px",
+                      "xxl": "32px",
+                      "unit": "4px",
+                      "xl": "24px",
+                      "max-width": "640px",
+                      "huge": "48px",
+                      "margin-page": "20px",
+                      "xs": "4px",
+                      "lg": "16px"
+              },
+              "fontFamily": {
+                      "counter-lg": ["JetBrains Mono"],
+                      "body-md": ["Hanken Grotesk"],
+                      "title-sm": ["Hanken Grotesk"],
+                      "label-caps": ["Hanken Grotesk"],
+                      "headline-md": ["Hanken Grotesk"],
+                      "counter-sm": ["JetBrains Mono"],
+                      "body-sm": ["Hanken Grotesk"],
+                      "display-lg": ["Hanken Grotesk"]
+              },
+              "fontSize": {
+                      "counter-lg": ["20px", {"lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "500"}],
+                      "title-sm": ["19px", {"lineHeight": "26px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                      "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.14em", "fontWeight": "700"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "counter-sm": ["14px", {"lineHeight": "18px", "letterSpacing": "0em", "fontWeight": "500"}],
+                      "body-sm": ["13px", {"lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                      "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.03em", "fontWeight": "800"}]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        .system-shadow {
+            box-shadow: 0 1px 2px rgba(16,26,23,.05), 0 4px 12px rgba(16,26,23,.05);
+        }
+        .interactive:active {
+            transform: scale(0.98);
+            box-shadow: 0 1px 2px rgba(16,26,23,.05);
+        }
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface antialiased font-body-md min-h-screen flex flex-col pb-[80px]">
+<!-- TopAppBar -->
+<header class="w-full sticky top-0 bg-background dark:bg-background z-40 flat no shadows">
+<div class="flex items-center justify-between px-margin-page h-16 max-w-max-width mx-auto">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary dark:text-inverse-primary" style="font-variation-settings: 'FILL' 0;">insights</span>
+<h1 class="font-headline-md text-headline-md text-primary dark:text-inverse-primary font-bold">Performance</h1>
+</div>
+</div>
+</header>
+<main class="max-w-max-width mx-auto w-full px-margin-page flex flex-col gap-lg flex-1">
+<!-- Period Switcher -->
+<div class="flex bg-surface-dim rounded-[10px] p-xs">
+<button class="flex-1 py-xs text-center font-label-caps text-label-caps text-outline rounded-md">Week</button>
+<button class="flex-1 py-xs text-center font-label-caps text-label-caps text-ink bg-surface-bright rounded-md shadow-[0_1px_2px_rgba(16,26,23,.05)]">Month</button>
+<button class="flex-1 py-xs text-center font-label-caps text-label-caps text-outline rounded-md">Year</button>
+</div>
+<!-- Summary Section -->
+<div class="bg-surface-bright rounded-xl system-shadow p-lg flex items-center justify-between">
+<div class="flex flex-col items-center">
+<div class="relative w-[120px] h-[120px]">
+<svg class="w-full h-full -rotate-90" viewbox="0 0 120 120">
+<circle cx="60" cy="60" fill="none" r="52" stroke="#E8EDE5" stroke-width="8"></circle>
+<circle cx="60" cy="60" fill="none" r="52" stroke="#1B8A62" stroke-dasharray="326.72" stroke-dashoffset="42.47" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-counter-lg text-counter-lg text-ink">87%</span>
+</div>
+</div>
+<span class="font-counter-sm text-counter-sm text-outline mt-sm">Completion</span>
+</div>
+<div class="flex flex-col gap-md">
+<div>
+<div class="font-label-caps text-label-caps text-outline">Best Streak</div>
+<div class="font-counter-lg text-counter-lg text-[#B9700F]">41</div>
+</div>
+<div>
+<div class="font-label-caps text-label-caps text-outline">Perfect Days</div>
+<div class="font-counter-lg text-counter-lg text-ink">12</div>
+</div>
+</div>
+</div>
+<!-- Trend Chart Section -->
+<div class="bg-surface-bright rounded-xl system-shadow p-lg flex flex-col gap-md">
+<h2 class="font-title-sm text-title-sm text-ink">Monthly Trend</h2>
+<div class="h-[160px] relative w-full flex items-end">
+<!-- Faint Grid lines -->
+<div class="absolute inset-0 flex flex-col justify-between pointer-events-none">
+<div class="h-px w-full bg-outline-variant"></div>
+<div class="h-px w-full bg-outline-variant"></div>
+<div class="h-px w-full bg-outline-variant"></div>
+<div class="h-px w-full bg-outline-variant"></div>
+</div>
+<!-- SVG Line Chart (Conceptual representation for static HTML) -->
+<svg class="absolute inset-0 w-full h-full" preserveaspectratio="none" viewbox="0 0 100 100">
+<polyline fill="none" points="0,80 20,60 40,70 60,30 80,40 100,20" stroke="#1B8A62" stroke-width="2"></polyline>
+<circle cx="100" cy="20" fill="#1B8A62" r="4"></circle>
+</svg>
+</div>
+</div>
+<!-- By Weekday Section -->
+<div class="bg-surface-bright rounded-xl system-shadow p-lg flex flex-col gap-md">
+<h2 class="font-title-sm text-title-sm text-ink">Performance by Day</h2>
+<div class="flex justify-between items-end h-[120px] px-sm">
+<!-- M -->
+<div class="flex flex-col items-center gap-sm h-full justify-end">
+<div class="w-4 bg-[#1B8A62] rounded-t-sm" style="height: 80%;"></div>
+<span class="font-label-caps text-label-caps text-outline">M</span>
+</div>
+<!-- T -->
+<div class="flex flex-col items-center gap-sm h-full justify-end">
+<div class="w-4 bg-[#1B8A62] rounded-t-sm" style="height: 85%;"></div>
+<span class="font-label-caps text-label-caps text-outline">T</span>
+</div>
+<!-- W -->
+<div class="flex flex-col items-center gap-sm h-full justify-end">
+<div class="w-4 bg-[#1B8A62] rounded-t-sm" style="height: 90%;"></div>
+<span class="font-label-caps text-label-caps text-outline">W</span>
+</div>
+<!-- T -->
+<div class="flex flex-col items-center gap-sm h-full justify-end">
+<div class="w-4 bg-[#1B8A62] rounded-t-sm" style="height: 75%;"></div>
+<span class="font-label-caps text-label-caps text-outline">T</span>
+</div>
+<!-- F -->
+<div class="flex flex-col items-center gap-sm h-full justify-end">
+<div class="w-4 bg-[#1B8A62] rounded-t-sm" style="height: 80%;"></div>
+<span class="font-label-caps text-label-caps text-outline">F</span>
+</div>
+<!-- S -->
+<div class="flex flex-col items-center gap-sm h-full justify-end">
+<div class="w-4 bg-[#1B8A62] rounded-t-sm opacity-50" style="height: 40%;"></div>
+<span class="font-label-caps text-label-caps text-outline">S</span>
+</div>
+<!-- S -->
+<div class="flex flex-col items-center gap-sm h-full justify-end">
+<div class="w-4 bg-[#1B8A62] rounded-t-sm" style="height: 85%;"></div>
+<span class="font-label-caps text-label-caps text-outline">S</span>
+</div>
+</div>
+</div>
+<!-- Per-habit Breakdown -->
+<div class="bg-surface-bright rounded-[14px] system-shadow flex flex-col">
+<!-- Row 1 -->
+<div class="flex items-center justify-between px-md py-sm border-b border-outline-variant">
+<div class="flex items-center gap-md flex-1">
+<span class="font-body-md text-body-md text-ink truncate max-w-[120px]">Morning Meditation</span>
+<svg class="w-12 h-4 ml-auto" preserveaspectratio="none" viewbox="0 0 48 16"><polyline fill="none" points="0,12 12,8 24,10 36,4 48,2" stroke="#1B8A62" stroke-width="1.5"></polyline></svg>
+</div>
+<div class="flex items-center gap-md ml-md">
+<span class="font-counter-sm text-counter-sm text-ink">94%</span>
+<div class="flex items-center justify-center bg-[#fdf3e7] text-[#B9700F] px-2 py-1 rounded-full font-counter-sm text-counter-sm gap-1 min-w-[48px]">
+<span>🔥</span> 14
+                    </div>
+</div>
+</div>
+<!-- Row 2 -->
+<div class="flex items-center justify-between px-md py-sm border-b border-outline-variant">
+<div class="flex items-center gap-md flex-1">
+<span class="font-body-md text-body-md text-ink truncate max-w-[120px]">Read 20 pages</span>
+<svg class="w-12 h-4 ml-auto" preserveaspectratio="none" viewbox="0 0 48 16"><polyline fill="none" points="0,14 12,12 24,10 36,6 48,4" stroke="#1B8A62" stroke-width="1.5"></polyline></svg>
+</div>
+<div class="flex items-center gap-md ml-md">
+<span class="font-counter-sm text-counter-sm text-ink">88%</span>
+<div class="flex items-center justify-center bg-[#fdf3e7] text-[#B9700F] px-2 py-1 rounded-full font-counter-sm text-counter-sm gap-1 min-w-[48px]">
+<span>🔥</span> 8
+                    </div>
+</div>
+</div>
+<!-- Row 3 -->
+<div class="flex items-center justify-between px-md py-sm border-b border-outline-variant">
+<div class="flex items-center gap-md flex-1">
+<span class="font-body-md text-body-md text-ink truncate max-w-[120px]">Drink Water</span>
+<svg class="w-12 h-4 ml-auto" preserveaspectratio="none" viewbox="0 0 48 16"><polyline fill="none" points="0,10 12,14 24,8 36,12 48,10" stroke="#1B8A62" stroke-width="1.5"></polyline></svg>
+</div>
+<div class="flex items-center gap-md ml-md">
+<span class="font-counter-sm text-counter-sm text-ink">72%</span>
+<div class="flex items-center justify-center bg-surface-dim text-outline px-2 py-1 rounded-full font-counter-sm text-counter-sm gap-1 min-w-[48px]">
+<span>🔥</span> 2
+                    </div>
+</div>
+</div>
+<!-- Row 4 -->
+<div class="flex items-center justify-between px-md py-sm border-b border-outline-variant">
+<div class="flex items-center gap-md flex-1">
+<span class="font-body-md text-body-md text-ink truncate max-w-[120px]">Workout</span>
+<svg class="w-12 h-4 ml-auto" preserveaspectratio="none" viewbox="0 0 48 16"><polyline fill="none" points="0,8 12,12 24,14 36,10 48,12" stroke="#1B8A62" stroke-width="1.5"></polyline></svg>
+</div>
+<div class="flex items-center gap-md ml-md">
+<span class="font-counter-sm text-counter-sm text-ink">65%</span>
+<div class="min-w-[48px]"></div> <!-- Spacer for alignment -->
+</div>
+</div>
+<!-- Row 5 -->
+<div class="flex items-center justify-between px-md py-sm border-b border-outline-variant">
+<div class="flex items-center gap-md flex-1">
+<span class="font-body-md text-body-md text-ink truncate max-w-[120px]">Journaling</span>
+<svg class="w-12 h-4 ml-auto" preserveaspectratio="none" viewbox="0 0 48 16"><polyline fill="none" points="0,14 12,16 24,12 36,14 48,16" stroke="#1B8A62" stroke-width="1.5"></polyline></svg>
+</div>
+<div class="flex items-center gap-md ml-md">
+<span class="font-counter-sm text-counter-sm text-ink">58%</span>
+<div class="flex items-center justify-center bg-surface-dim text-outline px-2 py-1 rounded-full font-counter-sm text-counter-sm gap-1 min-w-[48px]">
+<span>🔥</span> 4
+                    </div>
+</div>
+</div>
+<!-- Row 6 -->
+<div class="flex items-center justify-between px-md py-sm">
+<div class="flex items-center gap-md flex-1">
+<span class="font-body-md text-body-md text-ink truncate max-w-[120px]">Hydration</span>
+<svg class="w-12 h-4 ml-auto" preserveaspectratio="none" viewbox="0 0 48 16"><polyline fill="none" points="0,12 12,10 24,8 36,12 48,6" stroke="#1B8A62" stroke-width="1.5"></polyline></svg>
+</div>
+<div class="flex items-center gap-md ml-md">
+<span class="font-counter-sm text-counter-sm text-ink">81%</span>
+<div class="min-w-[48px]"></div>
+</div>
+</div>
+</div>
+<!-- Footer -->
+<div class="flex justify-center py-lg mt-md">
+<button class="font-body-md text-body-md text-outline hover:text-ink transition-colors">Export data</button>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center h-16 bg-surface-bright pb-safe border-t border-outline-variant shadow-[0_-1px_2px_rgba(16,26,23,.05)] z-50">
+<a class="flex flex-col items-center justify-center text-outline dark:text-outline-variant hover:opacity-80 active:scale-98 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">calendar_today</span>
+<span class="font-label-caps text-label-caps">Today</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary dark:text-inverse-primary font-bold hover:opacity-80 active:scale-98 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">bar_chart</span>
+<span class="font-label-caps text-label-caps">Stats</span>
+</a>
+<a class="flex flex-col items-center justify-center text-outline dark:text-outline-variant hover:opacity-80 active:scale-98 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">person</span>
+<span class="font-label-caps text-label-caps">Profile</span>
+</a>
+</nav>
+</body></html>

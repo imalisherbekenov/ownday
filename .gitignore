@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.turbo/
+.env
+.next/
+generated/
+.corepack/
+.pnpm-store/
+*.tsbuildinfo

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Habit Templates</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700;800&amp;family=JetBrains+Mono:wght@500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "error": "#AF4034",
+                        "surface-bright": "#FFFFFF",
+                        "on-primary-fixed": "#002114",
+                        "secondary-container": "#fea949",
+                        "on-background": "#191c1a",
+                        "inverse-surface": "#2d312e",
+                        "secondary-fixed": "#ffdcbd",
+                        "on-tertiary-fixed": "#141e1a",
+                        "surface-dim": "#d8dbd6",
+                        "surface-container-high": "#e6e9e4",
+                        "surface-container": "#ecefea",
+                        "surface-tint": "#006c4a",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "on-surface-variant": "#3e4943",
+                        "tertiary-fixed": "#dae5e0",
+                        "surface-container-low": "#f1f4ef",
+                        "outline-variant": "#D4DDD5",
+                        "background": "#f7faf5",
+                        "tertiary-container": "#6c7773",
+                        "on-surface": "#191c1a",
+                        "secondary": "#8a5100",
+                        "on-secondary-container": "#6f4000",
+                        "on-secondary-fixed": "#2c1600",
+                        "on-tertiary-container": "#f4fffa",
+                        "on-secondary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "success-dark": "#38C68D",
+                        "primary-fixed-dim": "#76daab",
+                        "tertiary-fixed-dim": "#bec9c4",
+                        "secondary-fixed-dim": "#ffb86e",
+                        "outline": "#6E8078",
+                        "tertiary": "#535e5a",
+                        "surface": "#f7faf5",
+                        "on-primary": "#ffffff",
+                        "inverse-primary": "#76daab",
+                        "on-error": "#ffffff",
+                        "inverse-on-surface": "#eff2ed",
+                        "primary-fixed": "#92f6c6",
+                        "ink": "#101A17",
+                        "surface-variant": "#e0e3de",
+                        "on-error-container": "#93000a",
+                        "on-primary-container": "#f5fff7",
+                        "surface-container-highest": "#e0e3de",
+                        "streak-dark": "#E8A33D",
+                        "primary": "#006948",
+                        "primary-container": "#10855d",
+                        "on-primary-fixed-variant": "#005237",
+                        "on-tertiary-fixed-variant": "#3e4945",
+                        "on-secondary-fixed-variant": "#693c00"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "xl": "24px",
+                        "unit": "4px",
+                        "sm": "8px",
+                        "xs": "4px",
+                        "margin-page": "20px",
+                        "max-width": "640px",
+                        "xxl": "32px",
+                        "lg": "16px",
+                        "huge": "48px",
+                        "md": "12px"
+                    },
+                    fontFamily: {
+                        "display-lg": ["Hanken Grotesk"],
+                        "label-caps": ["Hanken Grotesk"],
+                        "counter-lg": ["JetBrains Mono"],
+                        "body-sm": ["Hanken Grotesk"],
+                        "title-sm": ["Hanken Grotesk"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "counter-sm": ["JetBrains Mono"],
+                        "body-md": ["Hanken Grotesk"]
+                    },
+                    fontSize: {
+                        "display-lg": ["32px", { lineHeight: "40px", letterSpacing: "-0.03em", fontWeight: "800" }],
+                        "label-caps": ["12px", { lineHeight: "16px", letterSpacing: "0.14em", fontWeight: "700" }],
+                        "counter-lg": ["20px", { lineHeight: "24px", letterSpacing: "0em", fontWeight: "600" }],
+                        "body-sm": ["13px", { lineHeight: "18px", letterSpacing: "0.01em", fontWeight: "400" }],
+                        "title-sm": ["19px", { lineHeight: "26px", letterSpacing: "-0.01em", fontWeight: "700" }],
+                        "headline-md": ["24px", { lineHeight: "32px", letterSpacing: "-0.02em", fontWeight: "700" }],
+                        "counter-sm": ["14px", { lineHeight: "18px", letterSpacing: "0em", fontWeight: "500" }],
+                        "body-md": ["16px", { lineHeight: "24px", letterSpacing: "0em", fontWeight: "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Tonal interaction utility */
+        .interaction-scale:active {
+            transform: scale(0.98);
+            transition: transform 150ms ease;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex justify-center">
+<main class="w-full max-w-max-width pb-xxl flex flex-col relative">
+<!-- Header -->
+<header class="flex items-center px-margin-page py-lg sticky top-0 bg-background/95 backdrop-blur-sm z-20">
+<button class="w-10 h-10 flex items-center justify-center -ml-xs rounded-full hover:bg-surface-variant transition-colors interaction-scale active:bg-surface-container-highest">
+<span class="material-symbols-outlined text-ink">arrow_back</span>
+</button>
+<h1 class="ml-sm font-title-sm text-title-sm text-ink">Choose a habit</h1>
+</header>
+<!-- Search Field -->
+<div class="px-margin-page mb-lg">
+<div class="flex items-center bg-surface-container-low rounded-xl px-md py-sm focus-within:ring-2 focus-within:ring-outline-variant transition-all">
+<span class="material-symbols-outlined text-outline mr-sm">search</span>
+<input class="bg-transparent border-none outline-none focus:ring-0 w-full font-body-md text-body-md placeholder:text-outline text-ink p-0" placeholder="Search habits" type="text"/>
+</div>
+</div>
+<!-- Category Chips -->
+<div class="flex overflow-x-auto px-margin-page gap-sm pb-md no-scrollbar mb-sm">
+<button class="whitespace-nowrap px-lg py-sm rounded-full bg-ink text-surface-bright font-body-sm text-body-sm font-bold interaction-scale">All</button>
+<button class="whitespace-nowrap px-lg py-sm rounded-full bg-surface-container-high text-outline hover:bg-surface-variant font-body-sm text-body-sm interaction-scale transition-colors">Health</button>
+<button class="whitespace-nowrap px-lg py-sm rounded-full bg-surface-container-high text-outline hover:bg-surface-variant font-body-sm text-body-sm interaction-scale transition-colors">Sport</button>
+<button class="whitespace-nowrap px-lg py-sm rounded-full bg-surface-container-high text-outline hover:bg-surface-variant font-body-sm text-body-sm interaction-scale transition-colors">Mind</button>
+<button class="whitespace-nowrap px-lg py-sm rounded-full bg-surface-container-high text-outline hover:bg-surface-variant font-body-sm text-body-sm interaction-scale transition-colors">Learning</button>
+<button class="whitespace-nowrap px-lg py-sm rounded-full bg-surface-container-high text-outline hover:bg-surface-variant font-body-sm text-body-sm interaction-scale transition-colors">Money</button>
+<button class="whitespace-nowrap px-lg py-sm rounded-full bg-surface-container-high text-outline hover:bg-surface-variant font-body-sm text-body-sm interaction-scale transition-colors">Home</button>
+</div>
+<!-- Template List Card -->
+<div class="mx-margin-page bg-surface-container-lowest rounded-xl shadow-[0_1px_2px_rgba(16,26,23,.05),0_4px_12px_rgba(16,26,23,.05)] flex flex-col mb-xl">
+<!-- Row 1 -->
+<div class="flex items-center px-lg py-md border-b border-outline-variant">
+<div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-primary mr-md shrink-0">
+<span class="material-symbols-outlined">water_drop</span>
+</div>
+<div class="flex-1 flex flex-col justify-center">
+<span class="font-body-md text-body-md font-bold text-ink">Drink water</span>
+<span class="font-body-sm text-body-sm text-outline">Daily</span>
+</div>
+<button class="w-8 h-8 rounded-full bg-surface-container-high text-ink flex items-center justify-center hover:bg-surface-variant transition-colors interaction-scale shrink-0 ml-md">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+<!-- Row 2 -->
+<div class="flex items-center px-lg py-md border-b border-outline-variant">
+<div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-secondary mr-md shrink-0">
+<span class="material-symbols-outlined">directions_run</span>
+</div>
+<div class="flex-1 flex flex-col justify-center">
+<span class="font-body-md text-body-md font-bold text-ink">Morning run</span>
+<span class="font-body-sm text-body-sm text-outline">Mon, Wed, Fri</span>
+</div>
+<button class="w-8 h-8 rounded-full bg-surface-container-high text-ink flex items-center justify-center hover:bg-surface-variant transition-colors interaction-scale shrink-0 ml-md">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+<!-- Row 3 -->
+<div class="flex items-center px-lg py-md border-b border-outline-variant">
+<div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-tertiary mr-md shrink-0">
+<span class="material-symbols-outlined">menu_book</span>
+</div>
+<div class="flex-1 flex flex-col justify-center">
+<span class="font-body-md text-body-md font-bold text-ink">Read <span class="font-counter-sm text-counter-sm font-bold">20</span> pages</span>
+<span class="font-body-sm text-body-sm text-outline">Daily</span>
+</div>
+<button class="w-8 h-8 rounded-full bg-surface-container-high text-ink flex items-center justify-center hover:bg-surface-variant transition-colors interaction-scale shrink-0 ml-md">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+<!-- Row 4 -->
+<div class="flex items-center px-lg py-md border-b border-outline-variant">
+<div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-primary-container mr-md shrink-0">
+<span class="material-symbols-outlined">self_improvement</span>
+</div>
+<div class="flex-1 flex flex-col justify-center">
+<span class="font-body-md text-body-md font-bold text-ink">Meditate</span>
+<span class="font-body-sm text-body-sm text-outline">Daily</span>
+</div>
+<button class="w-8 h-8 rounded-full bg-surface-container-high text-ink flex items-center justify-center hover:bg-surface-variant transition-colors interaction-scale shrink-0 ml-md">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+<!-- Row 5 -->
+<div class="flex items-center px-lg py-md border-b border-outline-variant">
+<div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-error mr-md shrink-0">
+<span class="material-symbols-outlined">no_meals</span>
+</div>
+<div class="flex-1 flex flex-col justify-center">
+<span class="font-body-md text-body-md font-bold text-ink">No sugar</span>
+<span class="font-body-sm text-body-sm text-outline">Weekdays</span>
+</div>
+<button class="w-8 h-8 rounded-full bg-surface-container-high text-ink flex items-center justify-center hover:bg-surface-variant transition-colors interaction-scale shrink-0 ml-md">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+<!-- Row 6 -->
+<div class="flex items-center px-lg py-md border-b border-outline-variant">
+<div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-tertiary-container mr-md shrink-0">
+<span class="material-symbols-outlined">book</span>
+</div>
+<div class="flex-1 flex flex-col justify-center">
+<span class="font-body-md text-body-md font-bold text-ink">Journal</span>
+<span class="font-body-sm text-body-sm text-outline">Daily</span>
+</div>
+<button class="w-8 h-8 rounded-full bg-surface-container-high text-ink flex items-center justify-center hover:bg-surface-variant transition-colors interaction-scale shrink-0 ml-md">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+<!-- Row 7 -->
+<div class="flex items-center px-lg py-md border-b border-outline-variant">
+<div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-secondary-container mr-md shrink-0">
+<span class="material-symbols-outlined text-on-surface">accessibility_new</span>
+</div>
+<div class="flex-1 flex flex-col justify-center">
+<span class="font-body-md text-body-md font-bold text-ink">Stretch</span>
+<span class="font-body-sm text-body-sm text-outline">Tue, Thu, Sat</span>
+</div>
+<button class="w-8 h-8 rounded-full bg-surface-container-high text-ink flex items-center justify-center hover:bg-surface-variant transition-colors interaction-scale shrink-0 ml-md">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+<!-- Row 8 (Last) -->
+<div class="flex items-center px-lg py-md">
+<div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-ink mr-md shrink-0">
+<span class="material-symbols-outlined">bedtime</span>
+</div>
+<div class="flex-1 flex flex-col justify-center">
+<span class="font-body-md text-body-md font-bold text-ink">Sleep before <span class="font-counter-sm text-counter-sm font-bold">23:00</span></span>
+<span class="font-body-sm text-body-sm text-outline">Daily</span>
+</div>
+<button class="w-8 h-8 rounded-full bg-surface-container-high text-ink flex items-center justify-center hover:bg-surface-variant transition-colors interaction-scale shrink-0 ml-md">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+</div>
+<!-- Bottom Action -->
+<div class="px-margin-page mt-auto pt-lg">
+<button class="w-full flex items-center justify-center py-md rounded-xl border-2 border-outline-variant text-ink font-body-md text-body-md font-bold hover:bg-surface-variant transition-colors interaction-scale">
+                Create my own instead
+            </button>
+</div>
+</main>
+</body></html>
