@@ -7,6 +7,12 @@ const authed = t.procedure.use(({ ctx, next }) => {
   return next({ ctx: { userId: ctx.userId } });
 });
 export const appRouter = t.router({
+  mobile: t.router({
+    bootstrap: authed.query(async ({ ctx }) => ({
+      user: await services.getUser(ctx.userId),
+      today: await services.listHabitsForToday(ctx.userId, new Date()),
+    })),
+  }),
   habits: t.router({
     list: authed.query(({ ctx }) => services.listHabits(ctx.userId)),
     today: authed.query(({ ctx }) => services.listHabitsForToday(ctx.userId, new Date())),

@@ -9,4 +9,9 @@ generated/
 .pnpm-cache/
 .pnpm-web/
 .pnpm-home/
+.gradle-home/
+.expo-home/
 *.tsbuildinfo
+apps/mobile/android/
+apps/mobile/ios/
+apps/mobile/.expo/

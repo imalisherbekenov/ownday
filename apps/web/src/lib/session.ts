@@ -4,12 +4,15 @@ import { cookies } from "next/headers";
 const COOKIE = "habits_session";
 const secret = () =>
   new TextEncoder().encode(process.env.SESSION_SECRET ?? "development-only-change-me-32-bytes");
-export async function issueSession(userId: string) {
-  const token = await new SignJWT({ sub: userId })
+async function signSession(userId: string, expiresIn: string) {
+  return new SignJWT({ sub: userId })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime("15m")
+    .setExpirationTime(expiresIn)
     .sign(secret());
+}
+export async function issueSession(userId: string) {
+  const token = await signSession(userId, "15m");
   const jar = await cookies();
   jar.set(COOKIE, token, {
     httpOnly: true,
@@ -19,8 +22,9 @@ export async function issueSession(userId: string) {
     maxAge: 900,
   });
 }
-export async function readSession() {
-  const token = (await cookies()).get(COOKIE)?.value;
+export const issueMobileSession = (userId: string) => signSession(userId, "30d");
+
+async function verifySession(token: string | undefined) {
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, secret());
@@ -28,4 +32,14 @@ export async function readSession() {
   } catch {
     return null;
   }
+}
+
+export async function readSession() {
+  return verifySession((await cookies()).get(COOKIE)?.value);
+}
+
+export async function readSessionFromRequest(request: Request) {
+  const authorization = request.headers.get("authorization");
+  if (authorization?.startsWith("Bearer ")) return verifySession(authorization.slice(7));
+  return readSession();
 }

@@ -92,7 +92,14 @@ export function createServices(dependencies: ServiceDependencies) {
           today: localDate,
           startedOn: localDateFor(habit.createdAt, user.timezone, user.dayStartHour),
         });
-        result.push({ habit, localDate, entry, streak });
+        result.push({
+          habit,
+          localDate,
+          entry,
+          entries,
+          startedOn: localDateFor(habit.createdAt, user.timezone, user.dayStartHour),
+          streak,
+        });
       }
       return result;
     },
