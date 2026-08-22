@@ -8,8 +8,8 @@ export type WeekDay = {
 export function WeekStrip({ days, compact = false }: { days: WeekDay[]; compact?: boolean }) {
   return (
     <div className="grid grid-cols-7 gap-2" aria-label="This week">
-      {days.map((day, i) => (
-        <div key={i} className="flex flex-col items-center gap-1">
+      {days.map((day, index) => (
+        <div key={index} className="flex flex-col items-center gap-1">
           <span className="label">{day.letter}</span>
           {!compact && (
             <span

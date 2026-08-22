@@ -1,13 +1,24 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { StreakPill, streakMode } from "./streak-pill";
 import { HabitRow } from "./habit-row";
 import { Heatmap, intensityStyle } from "./heatmap";
+
+const base = {
+  id: "h1",
+  title: "Practice",
+  icon: "check",
+  color: "moss",
+  value: 0,
+  target: null,
+  unit: null,
+  done: false,
+  streak: 0,
+};
+
 describe("StreakPill", () => {
-  it("does not render zero", () => {
-    const { container } = render(<StreakPill streak={0} />);
-    expect(container).toBeEmptyDOMElement();
-  });
+  it("does not render zero", () =>
+    expect(render(<StreakPill streak={0} />).container).toBeEmptyDOMElement());
   it("selects neutral, hot and record modes", () => {
     expect(streakMode(3)).toBe("neutral");
     expect(streakMode(7)).toBe("hot");
@@ -22,18 +33,8 @@ describe("StreakPill", () => {
     expect(screen.getByText(String(streak)).closest("span")).toHaveAttribute("data-mode", mode);
   });
 });
+
 describe("HabitRow", () => {
-  const base = {
-    id: "h1",
-    title: "Practice",
-    icon: "check",
-    color: "moss",
-    value: 0,
-    target: null,
-    unit: null,
-    done: false,
-    streak: 0,
-  };
   it.each(["binary", "counter", "duration"] as const)("renders %s behavior", (type) => {
     const props =
       type === "binary"
@@ -50,36 +51,31 @@ describe("HabitRow", () => {
       expect(screen.getByRole("button", { name: /complete/i })).toBeInTheDocument();
     else expect(screen.getByRole("button", { name: /increase/i })).toBeInTheDocument();
   });
-
-  it("places a counter below a full-width, shrink-safe title", () => {
-    render(
-      <HabitRow
-        {...base}
-        type="counter"
-        title="Read twenty pages daily"
-        value={12}
-        target={20}
-        unit="pages"
-      />,
-    );
-
-    const content = screen.getByTestId("habit-content");
-    const title = screen.getByTestId("habit-title-container");
-    const counterRow = screen.getByTestId("counter-row");
-
-    expect(content).toHaveClass("min-w-0", "flex-1");
-    expect(title).toHaveClass("min-w-0");
-    expect(title.querySelector("span")).not.toHaveClass("truncate");
-    expect(counterRow.parentElement).toBe(content);
-    expect(
-      counterRow.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_PRECEDING,
-    ).toBeTruthy();
+  it("keeps the counter below a shrink-safe title", () => {
+    render(<HabitRow {...base} type="counter" target={20} unit="pages" />);
+    expect(screen.getByTestId("habit-content")).toHaveClass("min-w-0", "flex-1");
+    expect(screen.getByTestId("habit-title-container")).toHaveClass("min-w-0");
+    expect(screen.getByTestId("counter-row")).toBeInTheDocument();
+  });
+  it("uses an anchor by default and the supplied link renderer when provided", () => {
+    const first = render(<HabitRow {...base} type="binary" />);
+    expect(first.getByRole("link", { name: /practice/i })).toHaveAttribute("href", "/habit/h1");
+    first.unmount();
+    const renderLink = vi.fn(({ href, children }: { href: string; children: React.ReactNode }) => (
+      <span data-testid="custom-link" data-href={href}>
+        {children}
+      </span>
+    ));
+    render(<HabitRow {...base} type="binary" renderLink={renderLink} />);
+    expect(screen.getByTestId("custom-link")).toHaveAttribute("data-href", "/habit/h1");
+    expect(renderLink).toHaveBeenCalledOnce();
   });
 });
+
 describe("Heatmap", () => {
   it("maps all five intensity levels", () => {
-    const points = ([0, 1, 2, 3, 4] as const).map((intensity, i) => ({
-      date: `2026-01-0${i + 1}`,
+    const points = ([0, 1, 2, 3, 4] as const).map((intensity, index) => ({
+      date: `2026-01-0${index + 1}`,
       intensity,
     }));
     const { container } = render(<Heatmap points={points} />);

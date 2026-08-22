@@ -1,22 +1,17 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { HabitForm } from "./habit-form";
-import type { Habit } from "@ownday/services";
-const initial = (type: Habit["type"]): Habit => ({
-  id: "h",
-  userId: "u",
+import { HabitForm, type HabitFormHabit } from "./habit-form";
+
+const initial = (type: HabitFormHabit["type"]): HabitFormHabit => ({
   title: "Test habit",
   type,
   icon: "check",
   color: "moss",
-  category: "general",
   targetValue: type === "binary" ? null : 10,
   unit: type === "binary" ? null : "units",
-  sortOrder: 0,
-  archivedAt: null,
-  createdAt: new Date(),
   scheduleVersions: [{ schedule: { kind: "daily" }, validFrom: "2026-01-01" }],
 });
+
 describe("HabitForm", () => {
   it.each([
     ["binary", false],

@@ -1,9 +1,8 @@
 import { services, getCurrentUserId } from "@/lib/services";
 import { markHabitAction } from "./actions";
-import { HabitRow } from "@/components/habit-row";
-import { WeekStrip } from "@/components/week-strip";
-import { EmptyState } from "@/components/empty-state";
-import { PrimaryAction } from "@/components/primary-action";
+import { EmptyState, WeekStrip } from "@ownday/ui";
+import { HabitRowAdapter } from "@/components/habit-row-adapter";
+import { PrimaryActionAdapter } from "@/components/primary-action-adapter";
 import { weekDays } from "@/lib/view-data";
 export const dynamic = "force-dynamic";
 export default async function TodayPage() {
@@ -41,7 +40,7 @@ export default async function TodayPage() {
         {items.length ? (
           <div className="card divide-y divide-line-soft">
             {items.map(({ habit, entry, streak }) => (
-              <HabitRow
+              <HabitRowAdapter
                 key={habit.id}
                 id={habit.id}
                 title={habit.title}
@@ -62,7 +61,7 @@ export default async function TodayPage() {
         )}
       </section>
       <div className="mt-6">
-        <PrimaryAction>Add a habit</PrimaryAction>
+        <PrimaryActionAdapter>Add a habit</PrimaryActionAdapter>
       </div>
     </main>
   );

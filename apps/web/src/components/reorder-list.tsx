@@ -2,7 +2,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import type { Habit } from "@ownday/services";
-import { StreakPill } from "./streak-pill";
+import { StreakPill } from "@ownday/ui";
 export function ReorderList({
   habits,
   streaks,

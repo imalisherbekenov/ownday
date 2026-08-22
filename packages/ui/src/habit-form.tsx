@@ -1,23 +1,36 @@
 "use client";
-import { useState } from "react";
+
+import { useState, type ReactNode } from "react";
 import * as Tabs from "@radix-ui/react-tabs";
 import * as Radio from "@radix-ui/react-radio-group";
 import * as Switch from "@radix-ui/react-switch";
-import type { Habit } from "@ownday/services";
-const colors = ["moss", "ocean", "indigo", "plum", "clay", "amber", "olive", "slate"],
-  days = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+import type { ScheduleVersion } from "@ownday/core";
+
+export type HabitFormHabit = {
+  title: string;
+  type: "binary" | "counter" | "duration";
+  icon: string;
+  color: string;
+  targetValue: number | null;
+  unit: string | null;
+  scheduleVersions: ScheduleVersion[];
+};
+
+const colors = ["moss", "ocean", "indigo", "plum", "clay", "amber", "olive", "slate"];
+const days = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+
 export function HabitForm({
   initial,
   action,
 }: {
-  initial?: Habit;
+  initial?: HabitFormHabit;
   action: (data: FormData) => void | Promise<void>;
 }) {
-  const [type, setType] = useState<string>(initial?.type ?? "binary"),
-    [schedule, setSchedule] = useState<string>(
-      initial?.scheduleVersions.at(-1)?.schedule.kind ?? "daily",
-    ),
-    [reminder, setReminder] = useState(false);
+  const [type, setType] = useState(initial?.type ?? "binary");
+  const [schedule, setSchedule] = useState(
+    initial?.scheduleVersions.at(-1)?.schedule.kind ?? "daily",
+  );
+  const [reminder, setReminder] = useState(false);
   return (
     <form action={action} className="space-y-6">
       <Field label="Название">
@@ -33,8 +46,8 @@ export function HabitForm({
         <Field label="Иконка">
           <select className="control" name="icon" defaultValue={initial?.icon ?? "check"}>
             {["check", "sun", "book", "timer", "activity", "moon", "droplet", "palette"].map(
-              (x) => (
-                <option key={x}>{x}</option>
+              (icon) => (
+                <option key={icon}>{icon}</option>
               ),
             )}
           </select>
@@ -45,36 +58,33 @@ export function HabitForm({
             defaultValue={initial?.color ?? "moss"}
             className="grid grid-cols-8 gap-2"
           >
-            {colors.map((c) => (
+            {colors.map((color) => (
               <Radio.Item
-                key={c}
-                value={c}
-                aria-label={c}
+                key={color}
+                value={color}
+                aria-label={color}
                 className="h-11 rounded-check border-2 border-transparent data-[state=checked]:border-ink"
-                style={{ backgroundColor: `var(--color-hue-${c})` }}
+                style={{ backgroundColor: `var(--color-hue-${color})` }}
               />
             ))}
           </Radio.Root>
         </Field>
       </div>
       <Field label="Тип привычки">
-        <Tabs.Root value={type} onValueChange={setType}>
+        <Tabs.Root value={type} onValueChange={(value) => setType(value as typeof type)}>
           <Tabs.List className="segments">
-            {(
-              [
-                ["binary", "Да / нет"],
-                ["counter", "Счётчик"],
-                ["duration", "Время"],
-              ] as const
-            ).map(([v, l]) => (
+            {[
+              ["binary", "Да / нет"],
+              ["counter", "Счётчик"],
+              ["duration", "Время"],
+            ].map(([value, label]) => (
               <Tabs.Trigger
-                name="type"
-                key={v}
-                value={v}
+                key={value}
+                value={value!}
                 className="segment"
-                data-testid={`type-${v}`}
+                data-testid={`type-${value}`}
               >
-                {l}
+                {label}
               </Tabs.Trigger>
             ))}
           </Tabs.List>
@@ -105,36 +115,34 @@ export function HabitForm({
         <Radio.Root
           name="schedule"
           value={schedule}
-          onValueChange={setSchedule}
+          onValueChange={(value) => setSchedule(value as typeof schedule)}
           className="grid grid-cols-2 gap-2"
         >
-          {(
-            [
-              ["daily", "Каждый день"],
-              ["days_of_week", "По дням"],
-              ["times_per_week", "Раз в неделю"],
-              ["interval_days", "Интервал"],
-            ] as const
-          ).map(([v, l]) => (
+          {[
+            ["daily", "Каждый день"],
+            ["days_of_week", "По дням"],
+            ["times_per_week", "Раз в неделю"],
+            ["interval_days", "Интервал"],
+          ].map(([value, label]) => (
             <Radio.Item
-              data-testid={`schedule-${v}`}
-              key={v}
-              value={v}
+              data-testid={`schedule-${value}`}
+              key={value}
+              value={value!}
               className="min-h-11 rounded-input bg-surface-2 px-3 text-left data-[state=checked]:bg-done-soft data-[state=checked]:text-done-ink"
             >
-              {l}
+              {label}
             </Radio.Item>
           ))}
         </Radio.Root>
         {schedule === "days_of_week" && (
           <div data-testid="days-settings" className="mt-3 grid grid-cols-7 gap-1">
-            {days.map((d, i) => (
+            {days.map((day, index) => (
               <label
-                key={d}
+                key={day}
                 className="flex min-h-11 items-center justify-center rounded-check bg-surface-2"
               >
-                <input className="sr-only" type="checkbox" name="days" value={i + 1} />
-                {d}
+                <input className="sr-only" type="checkbox" name="days" value={index + 1} />
+                {day}
               </label>
             ))}
           </div>
@@ -181,7 +189,8 @@ export function HabitForm({
     </form>
   );
 }
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+
+function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="block space-y-2">
       <span className="label block">{label}</span>

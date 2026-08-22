@@ -1,4 +1,4 @@
-import { HabitForm } from "@/components/habit-form";
+import { HabitForm } from "@ownday/ui";
 import { saveHabitAction } from "../actions";
 export default function NewHabitPage() {
   return (

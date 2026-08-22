@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 const variable = (name: string) => `var(--${name})`;
 export default {
-  content: ["./src/**/*.{ts,tsx}"],
+  content: ["./src/**/*.{ts,tsx}", "../../packages/ui/src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {

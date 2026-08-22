@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { HabitForm } from "@/components/habit-form";
+import { HabitForm } from "@ownday/ui";
 import { getCurrentUserId, services } from "@/lib/services";
 import { saveHabitAction } from "../../actions";
 export default async function EditHabitPage({ params }: { params: Promise<{ id: string }> }) {

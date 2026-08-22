@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getCurrentUserId, services } from "@/lib/services";
 import { periodDays, readStatsPeriod } from "@/lib/stats-period";
 import { shiftDate } from "@/lib/view-data";
-import { StreakPill } from "@/components/streak-pill";
+import { StreakPill } from "@ownday/ui";
 export const dynamic = "force-dynamic";
 export default async function StatsPage({
   searchParams,

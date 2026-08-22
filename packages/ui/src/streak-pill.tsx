@@ -1,4 +1,5 @@
 import { FlameIcon } from "./icons";
+
 export type StreakMode = "none" | "neutral" | "hot" | "record";
 export function streakMode(streak: number, isPersonalRecord = false): StreakMode {
   return streak === 0 ? "none" : isPersonalRecord ? "record" : streak >= 7 ? "hot" : "neutral";

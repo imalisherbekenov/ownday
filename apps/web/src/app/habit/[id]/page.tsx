@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCurrentUserId, repositories, services } from "@/lib/services";
-import { Heatmap } from "@/components/heatmap";
-import { WeekStrip } from "@/components/week-strip";
-import { PrimaryAction } from "@/components/primary-action";
+import { Heatmap, WeekStrip } from "@ownday/ui";
+import { PrimaryActionAdapter } from "@/components/primary-action-adapter";
 import { markHabitAction } from "@/app/actions";
 import { heatPoints, weekDays } from "@/lib/view-data";
 export const dynamic = "force-dynamic";
@@ -103,7 +102,7 @@ export default async function HabitDetail({ params }: { params: Promise<{ id: st
         <input type="hidden" name="habitId" value={id} />
         <input type="hidden" name="intent" value="done" />
       </form>
-      <PrimaryAction formId="detail-action">Mark as done today</PrimaryAction>
+      <PrimaryActionAdapter formId="detail-action">Mark as done today</PrimaryActionAdapter>
     </main>
   );
 }
