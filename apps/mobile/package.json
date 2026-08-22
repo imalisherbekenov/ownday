@@ -12,7 +12,8 @@
     "test": "vitest run",
     "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "eas-build-post-install": "cd ../.. && pnpm --filter \"@ownday/mobile^...\" build"
   },
   "dependencies": {
     "@expo-google-fonts/hanken-grotesk": "^0.4.1",
