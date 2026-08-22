@@ -12,7 +12,7 @@ describe("getCurrentUserId", () => {
     vi.unstubAllEnvs();
   });
 
-  it.each([undefined, "postgresql://user:password@localhost:5432/habits"])(
+  it.each([undefined, "postgresql://user:password@localhost:5432/ownday"])(
     "requires authentication in production when DATABASE_URL is %s",
     async (databaseUrl) => {
       vi.stubEnv("DATABASE_URL", databaseUrl);

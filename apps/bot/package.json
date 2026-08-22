@@ -1,5 +1,5 @@
 {
-  "name": "@habits/bot",
+  "name": "@ownday/bot",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -13,9 +13,9 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
-    "@habits/core": "workspace:*",
-    "@habits/db": "workspace:*",
-    "@habits/services": "workspace:*",
+    "@ownday/core": "workspace:*",
+    "@ownday/db": "workspace:*",
+    "@ownday/services": "workspace:*",
     "grammy": "1.38.2"
   },
   "devDependencies": {

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { HabitType } from "@habits/services";
+import type { HabitType } from "@ownday/services";
 import { Checkbox } from "./checkbox";
 import { Counter } from "./counter";
 import { StreakPill } from "./streak-pill";

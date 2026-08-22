@@ -6,7 +6,7 @@ import {
   nextFireAt,
   scheduleAt,
   type LocalDate,
-} from "@habits/core";
+} from "@ownday/core";
 import type {
   EntryRepository,
   HabitRepository,

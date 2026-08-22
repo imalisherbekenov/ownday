@@ -5,7 +5,7 @@ import {
   InMemoryHabitRepository,
   InMemoryReminderRepository,
   InMemoryUserRepository,
-} from "@habits/services";
+} from "@ownday/services";
 import { callback, today, type BotContext, type Session } from "./handlers.js";
 const now = new Date("2024-01-02T12:00:00Z");
 function setup() {

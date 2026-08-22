@@ -1,4 +1,4 @@
-@import "@habits/tokens/tokens.css";
+@import "@ownday/tokens/tokens.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

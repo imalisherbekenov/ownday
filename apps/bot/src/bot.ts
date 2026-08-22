@@ -1,6 +1,6 @@
 import { Bot, session } from "grammy";
 import type { Context, SessionFlavor, StorageAdapter } from "grammy";
-import type { PrismaClient } from "@habits/db";
+import type { PrismaClient } from "@ownday/db";
 import type { HandlerDeps } from "./handlers.js";
 import {
   callback,

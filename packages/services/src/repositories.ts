@@ -1,4 +1,4 @@
-import type { EntryStatus, LocalDate } from "@habits/core";
+import type { EntryStatus, LocalDate } from "@ownday/core";
 import type {
   CreateHabitInput,
   EntrySource,

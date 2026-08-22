@@ -1,5 +1,5 @@
 {
-  "name": "@habits/services",
+  "name": "@ownday/services",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -20,7 +20,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@habits/core": "workspace:*",
-    "@habits/db": "workspace:*"
+    "@ownday/core": "workspace:*",
+    "@ownday/db": "workspace:*"
   }
 }

@@ -1,5 +1,5 @@
 import "server-only";
-import { localDateFor } from "@habits/core";
+import { localDateFor } from "@ownday/core";
 import {
   createServices,
   InMemoryEntryRepository,
@@ -8,16 +8,16 @@ import {
   InMemoryUserRepository,
   type ServiceDependencies,
   prismaRepositories,
-} from "@habits/services";
-import { PrismaClient } from "@habits/db";
+} from "@ownday/services";
+import { PrismaClient } from "@ownday/db";
 type Store = ServiceDependencies & { ready?: Promise<string> };
 const globalStore = globalThis as typeof globalThis & {
-  __habitWebStore?: Store;
-  __habitPrisma?: PrismaClient;
+  __owndayWebStore?: Store;
+  __owndayPrisma?: PrismaClient;
 };
 function createStore(): Store {
   if (process.env.DATABASE_URL) {
-    const prisma = (globalStore.__habitPrisma ??= new PrismaClient());
+    const prisma = (globalStore.__owndayPrisma ??= new PrismaClient());
     return prismaRepositories(prisma);
   }
   return {
@@ -27,15 +27,15 @@ function createStore(): Store {
     reminders: new InMemoryReminderRepository(),
   };
 }
-export const repositories = (globalStore.__habitWebStore ??= createStore());
+export const repositories = (globalStore.__owndayWebStore ??= createStore());
 export const services = createServices(repositories);
 export function ensureDemoData() {
   return (repositories.ready ??= (async () => {
-    const existing = await repositories.users.findIdentity("email", "demo@habits.local");
+    const existing = await repositories.users.findIdentity("email", "demo@ownday.local");
     if (existing) return existing.user.id;
     const user = await repositories.users.createWithIdentity({
       provider: "email",
-      externalId: "demo@habits.local",
+      externalId: "demo@ownday.local",
       timezone: "Asia/Tashkent",
       dayStartHour: 4,
       locale: "en",

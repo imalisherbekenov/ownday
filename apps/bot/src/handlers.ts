@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
-import type { Schedule } from "@habits/core";
-import type { ReminderRepository, Services, User, UserRepository } from "@habits/services";
+import type { Schedule } from "@ownday/core";
+import type { ReminderRepository, Services, User, UserRepository } from "@ownday/services";
 import { t, type Lang } from "./i18n/index.js";
 
 type NewHabitState = {

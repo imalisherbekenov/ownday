@@ -1,5 +1,5 @@
 {
-  "name": "@habits/web",
+  "name": "@ownday/web",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -11,10 +11,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@habits/core": "workspace:*",
-    "@habits/db": "workspace:*",
-    "@habits/services": "workspace:*",
-    "@habits/tokens": "workspace:*",
+    "@ownday/core": "workspace:*",
+    "@ownday/db": "workspace:*",
+    "@ownday/services": "workspace:*",
+    "@ownday/tokens": "workspace:*",
     "@trpc/server": "11.5.0",
     "jose": "6.1.0",
     "next": "15.5.2",

@@ -2,7 +2,7 @@
 # ЕДИНСТВЕННЫЙ ИСТОЧНИК ПРАВДЫ ПО ТОКЕНАМ.
 # Этот файл -> packages/tokens (CSS-переменные для web, JS-объект для NativeWind).
 # Нигде в коде не должно быть литеральных хексов. Только имена токенов.
-name: Habit Tracker Design System
+name: Ownday Design System
 version: 1
 
 color:

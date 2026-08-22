@@ -1,4 +1,4 @@
-import type { HabitEntry } from "@habits/services";
+import type { HabitEntry } from "@ownday/services";
 export function shiftDate(date: string, days: number) {
   return new Date(Date.parse(`${date}T00:00:00Z`) + days * 86400000).toISOString().slice(0, 10);
 }

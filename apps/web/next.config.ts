@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 const config: NextConfig = {
-  transpilePackages: ["@habits/core", "@habits/db", "@habits/services", "@habits/tokens"],
+  transpilePackages: ["@ownday/core", "@ownday/db", "@ownday/services", "@ownday/tokens"],
   serverExternalPackages: ["@prisma/client"],
 };
 export default config;

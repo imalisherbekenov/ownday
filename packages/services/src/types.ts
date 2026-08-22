@@ -1,4 +1,4 @@
-import type { EntryStatus, LocalDate, ScheduleVersion } from "@habits/core";
+import type { EntryStatus, LocalDate, ScheduleVersion } from "@ownday/core";
 
 export type Locale = "ru" | "en";
 export type HabitType = "binary" | "counter" | "duration";

@@ -1,5 +1,5 @@
 ---
-name: Habit Tracker
+name: Ownday
 colors:
   background: '#f3f6f1'
   on-background: '#101a17'

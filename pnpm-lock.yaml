@@ -26,13 +26,13 @@ importers:
 
   apps/bot:
     dependencies:
-      '@habits/core':
+      '@ownday/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@habits/db':
+      '@ownday/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@habits/services':
+      '@ownday/services':
         specifier: workspace:*
         version: link:../../packages/services
       grammy:
@@ -45,16 +45,16 @@ importers:
 
   apps/web:
     dependencies:
-      '@habits/core':
+      '@ownday/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@habits/db':
+      '@ownday/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@habits/services':
+      '@ownday/services':
         specifier: workspace:*
         version: link:../../packages/services
-      '@habits/tokens':
+      '@ownday/tokens':
         specifier: workspace:*
         version: link:../../packages/tokens
       '@trpc/server':
@@ -118,10 +118,10 @@ importers:
 
   packages/services:
     dependencies:
-      '@habits/core':
+      '@ownday/core':
         specifier: workspace:*
         version: link:../core
-      '@habits/db':
+      '@ownday/db':
         specifier: workspace:*
         version: link:../db
 

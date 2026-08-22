@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@habits/db";
+import type { PrismaClient } from "@ownday/db";
 import type {
   EntryRepository,
   HabitRepository,

@@ -1,7 +1,7 @@
 import { createServer } from "node:http";
 import { webhookCallback } from "grammy";
-import { PrismaClient } from "@habits/db";
-import { createServices, prismaRepositories } from "@habits/services";
+import { PrismaClient } from "@ownday/db";
+import { createServices, prismaRepositories } from "@ownday/services";
 import { createBot, prismaSessionStorage } from "./bot.js";
 import { startReminderWorker } from "./worker.js";
 const token = process.env.BOT_TOKEN;

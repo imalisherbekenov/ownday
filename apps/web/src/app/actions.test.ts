@@ -6,7 +6,7 @@ import {
   InMemoryEntryRepository,
   InMemoryHabitRepository,
   InMemoryUserRepository,
-} from "@habits/services";
+} from "@ownday/services";
 describe("markHabitAction", () => {
   let userId: string, habitId: string;
   beforeEach(async () => {
