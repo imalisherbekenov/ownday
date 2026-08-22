@@ -26,11 +26,16 @@ export async function readDesignTokens(): Promise<DesignTokens> {
 const kebab = (segments: string[]) => segments.join("-");
 function flatten(value: unknown, prefix: string[] = []): Array<[string, Scalar]> {
   if (typeof value === "string" || typeof value === "number") return [[kebab(prefix), value]];
-  if (Array.isArray(value)) return value.flatMap((item, index) => flatten(item, [...prefix, String(index + 1)]));
-  return Object.entries(value as Record<string, unknown>).flatMap(([key, child]) => flatten(child, [...prefix, key]));
+  if (Array.isArray(value))
+    return value.flatMap((item, index) => flatten(item, [...prefix, String(index + 1)]));
+  return Object.entries(value as Record<string, unknown>).flatMap(([key, child]) =>
+    flatten(child, [...prefix, key]),
+  );
 }
-const cssValue = (name: string, value: Scalar) => typeof value === "number" && !/(weight|version)$/.test(name) ? `${value}px` : String(value);
-const declarations = (pairs: Array<[string, Scalar]>) => pairs.map(([name, value]) => `  --${name}: ${cssValue(name, value)};`).join("\n");
+const cssValue = (name: string, value: Scalar) =>
+  typeof value === "number" && !/(weight|version)$/.test(name) ? `${value}px` : String(value);
+const declarations = (pairs: Array<[string, Scalar]>) =>
+  pairs.map(([name, value]) => `  --${name}: ${cssValue(name, value)};`).join("\n");
 
 export function createCss(tokens: DesignTokens): string {
   const nonColors = Object.entries(tokens)
@@ -38,7 +43,12 @@ export function createCss(tokens: DesignTokens): string {
     .flatMap(([key, value]) => flatten(value, [key]));
   const light = flatten(tokens.color.light, ["color"]);
   const dark = flatten(tokens.color.dark, ["color"]);
-  return `:root {\n${declarations([...light, ...nonColors])}\n}\n\n@media (prefers-color-scheme: dark) {\n  :root:not([data-theme="light"]) {\n${declarations(dark).split("\n").map(line => `  ${line}`).join("\n")}\n  }\n}\n\n:root[data-theme="dark"] {\n${declarations(dark)}\n}\n`;
+  return `:root {\n${declarations([...light, ...nonColors])}\n}\n\n@media (prefers-color-scheme: dark) {\n  :root:not([data-theme="light"]) {\n${declarations(
+    dark,
+  )
+    .split("\n")
+    .map((line) => `  ${line}`)
+    .join("\n")}\n  }\n}\n\n:root[data-theme="dark"] {\n${declarations(dark)}\n}\n`;
 }
 
 function typescript(tokens: DesignTokens): string {
@@ -62,8 +72,9 @@ export async function generate(): Promise<void> {
     writeFile(path.join(output, "tokens.ts"), typescript(tokens)),
     writeFile(path.join(output, "tokens.js"), javascript(tokens)),
     writeFile(path.join(output, "tokens.d.ts"), declarationsFile),
-    writeFile(path.join(output, "tokens.json"), `${JSON.stringify(tokens, null, 2)}\n`)
+    writeFile(path.join(output, "tokens.json"), `${JSON.stringify(tokens, null, 2)}\n`),
   ]);
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await generate();
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url))
+  await generate();

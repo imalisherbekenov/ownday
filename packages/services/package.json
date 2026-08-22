@@ -1,5 +1,5 @@
 {
-  "name": "@habits/core",
+  "name": "@habits/services",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -7,6 +7,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./prisma": {
+      "types": "./dist/prisma.d.ts",
+      "import": "./dist/prisma.js"
     }
   },
   "scripts": {
@@ -14,5 +18,9 @@
     "test": "vitest run",
     "lint": "tsc -p tsconfig.json --noEmit",
     "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@habits/core": "workspace:*",
+    "@habits/db": "workspace:*"
   }
 }

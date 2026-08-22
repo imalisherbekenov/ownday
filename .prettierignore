@@ -1,0 +1,12 @@
+node_modules
+dist
+.turbo
+generated
+pnpm-lock.yaml
+docs/screens
+docs
+README.md
+pnpm-workspace.yaml
+tsconfig.base.json
+.corepack
+.pnpm-store

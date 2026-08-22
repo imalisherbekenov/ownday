@@ -3,13 +3,22 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "exports": { ".": { "types": "./generated/client/index.d.ts", "import": "./generated/client/index.js" } },
+  "exports": {
+    ".": {
+      "types": "./generated/client/index.d.ts",
+      "import": "./generated/client/index.js"
+    }
+  },
   "scripts": {
     "build": "prisma generate",
     "test": "vitest run --passWithNoTests",
     "lint": "prisma generate",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
-  "dependencies": { "@prisma/client": "6.14.0" },
-  "devDependencies": { "prisma": "6.14.0" }
+  "dependencies": {
+    "@prisma/client": "6.14.0"
+  },
+  "devDependencies": {
+    "prisma": "6.14.0"
+  }
 }
