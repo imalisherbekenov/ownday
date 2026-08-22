@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HabitTrack - Statistics</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700;800&amp;family=JetBrains+Mono:wght@500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#141e1a",
+                        "secondary-fixed": "#ffdcbd",
+                        "tertiary-container": "#6c7773",
+                        "surface-container-lowest": "#ffffff",
+                        "habit-amber": "#B9700F",
+                        "surface-variant": "#d4e7dd",
+                        "on-tertiary": "#ffffff",
+                        "primary-container": "#10855d",
+                        "secondary-container": "#fea949",
+                        "on-secondary-container": "#6f4000",
+                        "on-primary-fixed": "#002114",
+                        "habit-ocean": "#1C6C8C",
+                        "on-surface-variant": "#3e4943",
+                        "surface-container": "#dff2e9",
+                        "background": "#F3F6F1",
+                        "on-error": "#ffffff",
+                        "inverse-primary": "#76daab",
+                        "outline": "#6e7a72",
+                        "habit-clay": "#A8452F",
+                        "habit-slate": "#4A5A63",
+                        "habit-indigo": "#3B4E9B",
+                        "surface-dim": "#cbded5",
+                        "primary": "#006948",
+                        "on-surface": "#0e1f19",
+                        "on-tertiary-fixed-variant": "#3e4945",
+                        "surface-container-high": "#d9ede3",
+                        "surface-container-low": "#e5f8ee",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed-variant": "#693c00",
+                        "tertiary": "#535e5a",
+                        "on-primary-fixed-variant": "#005237",
+                        "on-primary-container": "#f5fff7",
+                        "habit-plum": "#7A3E86",
+                        "on-error-container": "#93000a",
+                        "inverse-on-surface": "#e2f5eb",
+                        "secondary": "#8a5100",
+                        "secondary-fixed-dim": "#ffb86e",
+                        "outline-variant": "#bdcac0",
+                        "surface-tint": "#006c4a",
+                        "surface-bright": "#eafef4",
+                        "on-secondary-fixed": "#2c1600",
+                        "error-container": "#ffdad6",
+                        "primary-fixed": "#92f6c6",
+                        "on-tertiary-container": "#f4fffa",
+                        "tertiary-fixed-dim": "#bec9c4",
+                        "surface": "#ffffff", /* Using standard white for surface layer to match "White cards and sheets" rule over default light green tint */
+                        "surface-container-highest": "#d4e7dd",
+                        "error": "#AF4034",
+                        "tertiary-fixed": "#dae5e0",
+                        "inverse-surface": "#23342d",
+                        "habit-moss": "#1B8A62",
+                        "on-secondary": "#ffffff",
+                        "habit-olive": "#5F7327",
+                        "primary-fixed-dim": "#76daab",
+                        "on-background": "#0e1f19"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xxl": "32px",
+                        "page-margin": "20px",
+                        "xl": "24px",
+                        "max-width": "640px",
+                        "huge": "48px",
+                        "md": "12px",
+                        "unit": "4px",
+                        "sm": "8px",
+                        "xs": "4px",
+                        "lg": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Hanken Grotesk"],
+                        "counter-lg": ["JetBrains Mono"],
+                        "body-sm": ["Hanken Grotesk"],
+                        "label-caps": ["Hanken Grotesk"],
+                        "title-sm": ["Hanken Grotesk"],
+                        "counter-sm": ["JetBrains Mono"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "counter-lg": ["20px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600" }],
+                        "body-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.14em", "fontWeight": "700" }],
+                        "title-sm": ["19px", { "lineHeight": "26px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "counter-sm": ["14px", { "lineHeight": "18px", "letterSpacing": "0em", "fontWeight": "500" }],
+                        "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.03em", "fontWeight": "800" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* Card Shadow Model */
+        .card-shadow {
+            box-shadow: 0 1px 2px rgba(16,26,23,.05), 0 4px 12px rgba(16,26,23,.05);
+        }
+        /* Custom Ring Progress */
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex selection:bg-surface-variant selection:text-on-surface">
+<!-- Shared Component: SideNavBar -->
+<nav class="bg-surface dark:bg-surface-container-low h-screen w-[240px] fixed left-0 top-0 shadow-[0_1px_2px_rgba(16,26,23,.05),0_4px_12px_rgba(16,26,23,.05)] flex flex-col justify-between py-huge px-lg h-full z-50 border-r border-surface-container-highest">
+<div>
+<!-- Header -->
+<div class="mb-xxl px-sm flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center overflow-hidden shrink-0">
+<span class="material-symbols-outlined text-outline">account_circle</span>
+</div>
+<div>
+<h1 class="font-display-lg text-display-lg font-extrabold text-primary dark:text-primary-fixed text-[24px] leading-tight tracking-tight">HabitTrack</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Stay disciplined</p>
+</div>
+</div>
+<!-- Primary Nav -->
+<ul class="flex flex-col gap-unit font-body-md text-body-md">
+<li>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant dark:text-outline hover:text-on-surface dark:hover:text-on-surface-variant hover:bg-surface-container dark:hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">today</span>
+<span>Today</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant dark:text-outline hover:text-on-surface dark:hover:text-on-surface-variant hover:bg-surface-container dark:hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">checklist</span>
+<span>Habits</span>
+</a>
+</li>
+<!-- ACTIVE NAV ITEM -->
+<li>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-primary dark:text-primary-fixed font-bold border-r-4 border-primary dark:border-primary-fixed bg-surface-container-high dark:bg-surface-container-highest scale-98 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">leaderboard</span>
+<span>Statistics</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant dark:text-outline hover:text-on-surface dark:hover:text-on-surface-variant hover:bg-surface-container dark:hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+</li>
+</ul>
+</div>
+<div class="flex flex-col gap-xl">
+<!-- CTA Button -->
+<button class="w-full bg-on-surface text-on-primary py-[10px] rounded-[10px] font-body-md text-body-md font-bold flex items-center justify-center gap-sm active:scale-[0.98] transition-transform shadow-sm">
+<span class="material-symbols-outlined text-[20px]">add</span>
+                Add New Habit
+            </button>
+<!-- Footer Nav -->
+<ul class="flex flex-col gap-unit font-body-sm text-body-sm">
+<li>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant dark:text-outline hover:text-on-surface dark:hover:text-on-surface-variant transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">account_circle</span>
+<span>Profile</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant dark:text-outline hover:text-on-surface dark:hover:text-on-surface-variant transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">help</span>
+<span>Help</span>
+</a>
+</li>
+</ul>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="ml-[240px] flex-1 flex justify-center py-xxl px-page-margin">
+<!-- Center constrained column -->
+<div class="w-full max-w-[900px] flex flex-col gap-xl">
+<!-- Page Header -->
+<header class="flex items-end justify-between pb-sm border-b border-surface-container-highest">
+<h2 class="font-display-lg text-display-lg text-on-surface">Statistics</h2>
+<!-- Period Switcher -->
+<div class="flex bg-surface-container-highest rounded-lg p-unit">
+<button class="px-lg py-sm rounded font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors">Week</button>
+<button class="px-lg py-sm rounded bg-surface card-shadow font-body-sm text-body-sm font-bold text-on-surface transition-colors">Month</button>
+<button class="px-lg py-sm rounded font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors">Year</button>
+</div>
+</header>
+<!-- Row 1: Key Metrics (3 Cards) -->
+<div class="grid grid-cols-3 gap-lg">
+<!-- Completion Ring Card -->
+<div class="bg-surface rounded-xl card-shadow p-lg flex items-center gap-lg">
+<div class="relative w-[72px] h-[72px]">
+<svg class="w-full h-full" viewbox="0 0 100 100">
+<!-- Background track -->
+<circle class="text-surface-variant stroke-current" cx="50" cy="50" fill="transparent" r="40" stroke-width="8"></circle>
+<!-- Progress fill -->
+<circle class="text-habit-moss stroke-current progress-ring__circle" cx="50" cy="50" fill="transparent" r="40" stroke-dasharray="251.2" stroke-dashoffset="32.656" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="font-counter-lg text-counter-lg text-on-surface">87<span class="text-xs">%</span></span>
+</div>
+</div>
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-outline uppercase tracking-wider">Overall</span>
+<span class="font-title-sm text-title-sm text-on-surface">Completion</span>
+</div>
+</div>
+<!-- Streaks Card -->
+<div class="bg-surface rounded-xl card-shadow p-lg flex flex-col justify-center gap-md">
+<div class="flex items-baseline justify-between border-b border-surface-variant pb-sm">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Longest streak</span>
+<div class="flex items-center gap-xs text-habit-amber">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+<span class="font-counter-lg text-counter-lg">41</span>
+</div>
+</div>
+<div class="flex items-baseline justify-between pt-xs">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Perfect days</span>
+<div class="flex items-center gap-xs text-habit-moss">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">stars</span>
+<span class="font-counter-lg text-counter-lg">12</span>
+</div>
+</div>
+</div>
+<!-- Totals Card -->
+<div class="bg-surface rounded-xl card-shadow p-lg flex flex-col justify-center gap-md">
+<div class="flex items-baseline justify-between border-b border-surface-variant pb-sm">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Habits tracked</span>
+<span class="font-counter-lg text-counter-lg text-on-surface">6</span>
+</div>
+<div class="flex items-baseline justify-between pt-xs">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Total marks</span>
+<span class="font-counter-lg text-counter-lg text-on-surface">412</span>
+</div>
+</div>
+</div>
+<!-- Row 2: Monthly Trend Chart -->
+<div class="bg-surface rounded-xl card-shadow p-lg flex flex-col gap-lg">
+<div class="flex justify-between items-center">
+<h3 class="font-title-sm text-title-sm text-on-surface">Monthly Trend</h3>
+<span class="font-label-caps text-label-caps text-outline">Oct 1 - Oct 31</span>
+</div>
+<!-- Flat Line Chart -->
+<div class="w-full h-[180px] relative mt-sm">
+<!-- Y-axis guide lines -->
+<div class="absolute inset-0 flex flex-col justify-between">
+<div class="w-full border-t border-surface-container-highest"></div>
+<div class="w-full border-t border-surface-container-highest"></div>
+<div class="w-full border-t border-surface-container-highest"></div>
+<div class="w-full border-t border-surface-container-highest"></div>
+</div>
+<!-- Chart Line SVG -->
+<svg class="absolute inset-0 w-full h-full overflow-visible" preserveaspectratio="none" viewbox="0 0 100 100">
+<polyline class="stroke-habit-moss" fill="none" points="
+                            0,80 10,75 20,60 30,65 40,50 50,45 60,30 70,35 80,20 90,25 100,10
+                        " stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></polyline>
+<!-- Emphasized final point -->
+<circle class="fill-habit-moss" cx="100" cy="10" r="4"></circle>
+<circle class="fill-habit-moss opacity-20" cx="100" cy="10" r="8"></circle>
+</svg>
+</div>
+</div>
+<!-- Row 3: Weekday Bar & Ranked List -->
+<div class="grid grid-cols-2 gap-lg">
+<!-- Weekday Completion -->
+<div class="bg-surface rounded-xl card-shadow p-lg flex flex-col">
+<h3 class="font-title-sm text-title-sm text-on-surface mb-xl">Completion by Day</h3>
+<div class="flex items-end justify-between flex-1 gap-md pt-lg">
+<!-- Bars -->
+<div class="flex flex-col items-center gap-sm flex-1">
+<div class="w-full bg-habit-moss rounded-t-sm" style="height: 60%;"></div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">M</span>
+</div>
+<div class="flex flex-col items-center gap-sm flex-1">
+<div class="w-full bg-habit-moss rounded-t-sm" style="height: 80%;"></div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">T</span>
+</div>
+<div class="flex flex-col items-center gap-sm flex-1">
+<!-- Weakest day muted -->
+<div class="w-full bg-surface-container-highest rounded-t-sm" style="height: 30%;"></div>
+<span class="font-label-caps text-label-caps text-outline">W</span>
+</div>
+<div class="flex flex-col items-center gap-sm flex-1">
+<div class="w-full bg-habit-moss rounded-t-sm" style="height: 70%;"></div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">T</span>
+</div>
+<div class="flex flex-col items-center gap-sm flex-1">
+<div class="w-full bg-habit-moss rounded-t-sm" style="height: 90%;"></div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">F</span>
+</div>
+<div class="flex flex-col items-center gap-sm flex-1">
+<div class="w-full bg-habit-moss rounded-t-sm" style="height: 85%;"></div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">S</span>
+</div>
+<div class="flex flex-col items-center gap-sm flex-1">
+<div class="w-full bg-habit-moss rounded-t-sm" style="height: 75%;"></div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">S</span>
+</div>
+</div>
+</div>
+<!-- Ranked List -->
+<div class="bg-surface rounded-xl card-shadow p-lg flex flex-col">
+<h3 class="font-title-sm text-title-sm text-on-surface mb-md">Performance Rank</h3>
+<div class="flex flex-col gap-sm mt-sm">
+<span class="font-label-caps text-label-caps text-habit-moss uppercase tracking-wider">Top 3 Habits</span>
+<div class="flex justify-between items-center py-xs border-b border-surface-container-highest">
+<span class="font-body-sm text-body-sm text-on-surface">Read 20 pages</span>
+<span class="font-counter-sm text-counter-sm text-on-surface">96%</span>
+</div>
+<div class="flex justify-between items-center py-xs border-b border-surface-container-highest">
+<span class="font-body-sm text-body-sm text-on-surface">Morning Walk</span>
+<span class="font-counter-sm text-counter-sm text-on-surface">92%</span>
+</div>
+<div class="flex justify-between items-center py-xs border-b border-surface-container-highest">
+<span class="font-body-sm text-body-sm text-on-surface">Meditate 10m</span>
+<span class="font-counter-sm text-counter-sm text-on-surface">88%</span>
+</div>
+</div>
+<div class="flex flex-col gap-sm mt-xl">
+<span class="font-label-caps text-label-caps text-error uppercase tracking-wider">Needs Attention</span>
+<div class="flex justify-between items-center py-xs border-b border-surface-container-highest">
+<span class="font-body-sm text-body-sm text-on-surface">Learn Spanish</span>
+<span class="font-counter-sm text-counter-sm text-error">42%</span>
+</div>
+<div class="flex justify-between items-center py-xs border-b border-surface-container-highest">
+<span class="font-body-sm text-body-sm text-on-surface">Stretching</span>
+<span class="font-counter-sm text-counter-sm text-error">30%</span>
+</div>
+<div class="flex justify-between items-center py-xs border-b border-surface-container-highest">
+<span class="font-body-sm text-body-sm text-on-surface">Journaling</span>
+<span class="font-counter-sm text-counter-sm text-error">15%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Row 4: Habit Table Card -->
+<div class="bg-surface rounded-xl card-shadow p-lg">
+<h3 class="font-title-sm text-title-sm text-on-surface mb-lg">Detailed Breakdown</h3>
+<!-- Table Header -->
+<div class="grid grid-cols-12 gap-sm pb-sm border-b-2 border-surface-container-highest font-label-caps text-label-caps text-outline uppercase tracking-wider">
+<div class="col-span-4">Habit Name</div>
+<div class="col-span-3">Trend (30d)</div>
+<div class="col-span-1 text-right">Rate</div>
+<div class="col-span-2 text-right">Current</div>
+<div class="col-span-2 text-right">Best</div>
+</div>
+<!-- Table Rows -->
+<div class="flex flex-col">
+<!-- Row 1 -->
+<div class="grid grid-cols-12 gap-sm py-md border-b border-surface-container-highest items-center group hover:bg-surface-container-lowest transition-colors">
+<div class="col-span-4 font-body-md text-body-md text-on-surface font-medium truncate">Read 20 pages</div>
+<div class="col-span-3 flex items-center h-full">
+<svg class="w-full h-6" preserveaspectratio="none" viewbox="0 0 100 20">
+<polyline class="stroke-habit-moss" fill="none" points="0,15 20,12 40,15 60,5 80,8 100,2" stroke-width="1.5"></polyline>
+</svg>
+</div>
+<div class="col-span-1 text-right font-counter-sm text-counter-sm text-on-surface">96%</div>
+<div class="col-span-2 flex justify-end">
+<!-- Orange Pill -->
+<span class="inline-flex items-center justify-center bg-secondary-container/30 text-secondary font-counter-sm px-sm py-[2px] rounded font-bold min-w-[32px]">14</span>
+</div>
+<div class="col-span-2 text-right font-counter-sm text-counter-sm text-on-surface-variant">41</div>
+</div>
+<!-- Row 2 -->
+<div class="grid grid-cols-12 gap-sm py-md border-b border-surface-container-highest items-center group hover:bg-surface-container-lowest transition-colors">
+<div class="col-span-4 font-body-md text-body-md text-on-surface font-medium truncate">Morning Walk</div>
+<div class="col-span-3 flex items-center h-full">
+<svg class="w-full h-6" preserveaspectratio="none" viewbox="0 0 100 20">
+<polyline class="stroke-habit-moss" fill="none" points="0,10 20,12 40,8 60,10 80,5 100,4" stroke-width="1.5"></polyline>
+</svg>
+</div>
+<div class="col-span-1 text-right font-counter-sm text-counter-sm text-on-surface">92%</div>
+<div class="col-span-2 flex justify-end">
+<!-- Orange Pill -->
+<span class="inline-flex items-center justify-center bg-secondary-container/30 text-secondary font-counter-sm px-sm py-[2px] rounded font-bold min-w-[32px]">8</span>
+</div>
+<div class="col-span-2 text-right font-counter-sm text-counter-sm text-on-surface-variant">28</div>
+</div>
+<!-- Row 3 -->
+<div class="grid grid-cols-12 gap-sm py-md border-b border-surface-container-highest items-center group hover:bg-surface-container-lowest transition-colors">
+<div class="col-span-4 font-body-md text-body-md text-on-surface font-medium truncate">Learn Spanish</div>
+<div class="col-span-3 flex items-center h-full">
+<svg class="w-full h-6" preserveaspectratio="none" viewbox="0 0 100 20">
+<polyline class="stroke-outline-variant" fill="none" points="0,18 20,18 40,15 60,18 80,18 100,16" stroke-width="1.5"></polyline>
+</svg>
+</div>
+<div class="col-span-1 text-right font-counter-sm text-counter-sm text-on-surface">42%</div>
+<div class="col-span-2 flex justify-end">
+<!-- No Pill -->
+<span class="inline-flex items-center justify-center text-outline font-counter-sm px-sm py-[2px] min-w-[32px]">0</span>
+</div>
+<div class="col-span-2 text-right font-counter-sm text-counter-sm text-on-surface-variant">5</div>
+</div>
+<!-- Row 4 -->
+<div class="grid grid-cols-12 gap-sm py-md border-b border-surface-container-highest items-center group hover:bg-surface-container-lowest transition-colors">
+<div class="col-span-4 font-body-md text-body-md text-on-surface font-medium truncate">Drink Water 2L</div>
+<div class="col-span-3 flex items-center h-full">
+<svg class="w-full h-6" preserveaspectratio="none" viewbox="0 0 100 20">
+<polyline class="stroke-habit-moss opacity-60" fill="none" points="0,12 20,15 40,12 60,10 80,12 100,10" stroke-width="1.5"></polyline>
+</svg>
+</div>
+<div class="col-span-1 text-right font-counter-sm text-counter-sm text-on-surface">65%</div>
+<div class="col-span-2 flex justify-end">
+<!-- Grey Pill -->
+<span class="inline-flex items-center justify-center bg-surface-container-highest text-on-surface-variant font-counter-sm px-sm py-[2px] rounded font-medium min-w-[32px]">2</span>
+</div>
+<div class="col-span-2 text-right font-counter-sm text-counter-sm text-on-surface-variant">12</div>
+</div>
+<!-- Row 5 -->
+<div class="grid grid-cols-12 gap-sm py-md border-b border-surface-container-highest items-center group hover:bg-surface-container-lowest transition-colors">
+<div class="col-span-4 font-body-md text-body-md text-on-surface font-medium truncate">Journaling</div>
+<div class="col-span-3 flex items-center h-full">
+<svg class="w-full h-6" preserveaspectratio="none" viewbox="0 0 100 20">
+<polyline class="stroke-outline-variant" fill="none" points="0,18 20,18 40,18 60,18 80,18 100,18" stroke-width="1.5"></polyline>
+</svg>
+</div>
+<div class="col-span-1 text-right font-counter-sm text-counter-sm text-on-surface">15%</div>
+<div class="col-span-2 flex justify-end">
+<!-- No Pill -->
+<span class="inline-flex items-center justify-center text-outline font-counter-sm px-sm py-[2px] min-w-[32px]">0</span>
+</div>
+<div class="col-span-2 text-right font-counter-sm text-counter-sm text-on-surface-variant">3</div>
+</div>
+<!-- Row 6 -->
+<div class="grid grid-cols-12 gap-sm py-md items-center group hover:bg-surface-container-lowest transition-colors">
+<div class="col-span-4 font-body-md text-body-md text-on-surface font-medium truncate">Stretching</div>
+<div class="col-span-3 flex items-center h-full">
+<svg class="w-full h-6" preserveaspectratio="none" viewbox="0 0 100 20">
+<polyline class="stroke-habit-moss opacity-60" fill="none" points="0,15 20,12 40,12 60,15 80,10 100,12" stroke-width="1.5"></polyline>
+</svg>
+</div>
+<div class="col-span-1 text-right font-counter-sm text-counter-sm text-on-surface">30%</div>
+<div class="col-span-2 flex justify-end">
+<!-- Grey Pill -->
+<span class="inline-flex items-center justify-center bg-surface-container-highest text-on-surface-variant font-counter-sm px-sm py-[2px] rounded font-medium min-w-[32px]">4</span>
+</div>
+<div class="col-span-2 text-right font-counter-sm text-counter-sm text-on-surface-variant">10</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

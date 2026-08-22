@@ -6,4 +6,7 @@ dist/
 generated/
 .corepack/
 .pnpm-store/
+.pnpm-cache/
+.pnpm-web/
+.pnpm-home/
 *.tsbuildinfo

@@ -1,0 +1,101 @@
+import "server-only";
+import { localDateFor } from "@habits/core";
+import {
+  createServices,
+  InMemoryEntryRepository,
+  InMemoryHabitRepository,
+  InMemoryReminderRepository,
+  InMemoryUserRepository,
+  type ServiceDependencies,
+  prismaRepositories,
+} from "@habits/services";
+import { PrismaClient } from "@habits/db";
+type Store = ServiceDependencies & { ready?: Promise<string> };
+const globalStore = globalThis as typeof globalThis & {
+  __habitWebStore?: Store;
+  __habitPrisma?: PrismaClient;
+};
+function createStore(): Store {
+  if (process.env.DATABASE_URL) {
+    const prisma = (globalStore.__habitPrisma ??= new PrismaClient());
+    return prismaRepositories(prisma);
+  }
+  return {
+    habits: new InMemoryHabitRepository(),
+    entries: new InMemoryEntryRepository(),
+    users: new InMemoryUserRepository(),
+    reminders: new InMemoryReminderRepository(),
+  };
+}
+export const repositories = (globalStore.__habitWebStore ??= createStore());
+export const services = createServices(repositories);
+export function ensureDemoData() {
+  return (repositories.ready ??= (async () => {
+    const existing = await repositories.users.findIdentity("email", "demo@habits.local");
+    if (existing) return existing.user.id;
+    const user = await repositories.users.createWithIdentity({
+      provider: "email",
+      externalId: "demo@habits.local",
+      timezone: "Asia/Tashkent",
+      dayStartHour: 4,
+      locale: "en",
+    });
+    const today = localDateFor(new Date(), user.timezone, user.dayStartHour);
+    const habits = await Promise.all([
+      services.createHabit({
+        userId: user.id,
+        title: "Morning meditation",
+        type: "binary",
+        icon: "sun",
+        color: "moss",
+        schedule: { kind: "daily" },
+        validFrom: "2025-01-01",
+      }),
+      services.createHabit({
+        userId: user.id,
+        title: "Read twenty pages daily",
+        type: "counter",
+        icon: "book",
+        color: "ocean",
+        targetValue: 20,
+        unit: "pages",
+        schedule: { kind: "daily" },
+        validFrom: "2025-01-01",
+      }),
+      services.createHabit({
+        userId: user.id,
+        title: "Deep work",
+        type: "duration",
+        icon: "timer",
+        color: "indigo",
+        targetValue: 45,
+        unit: "min",
+        schedule: { kind: "days_of_week", days: [1, 2, 3, 4, 5] },
+        validFrom: "2025-01-01",
+      }),
+    ]);
+    await services.markEntry({
+      userId: user.id,
+      habitId: habits[0]!.id,
+      localDate: today,
+      status: "done",
+      source: "web",
+      clientId: crypto.randomUUID(),
+    });
+    await services.setEntryValue({
+      userId: user.id,
+      habitId: habits[1]!.id,
+      localDate: today,
+      value: 12,
+      source: "web",
+    });
+    return user.id;
+  })());
+}
+export async function getCurrentUserId() {
+  const { readSession } = await import("./session");
+  const sessionUserId = await readSession();
+  if (sessionUserId) return sessionUserId;
+  if (process.env.NODE_ENV === "production") throw new Error("AUTH_REQUIRED");
+  return ensureDemoData();
+}

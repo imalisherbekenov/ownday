@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Morning Meditation - Habit Detail</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700;800&amp;family=JetBrains+Mono:wght@500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-primary-fixed-variant": "#005237",
+                        "error-container": "#ffdad6",
+                        "outline-variant": "#bdcac0",
+                        "error": "#AF4034",
+                        "habit-clay": "#A8452F",
+                        "on-surface-variant": "#3e4943",
+                        "on-tertiary-fixed": "#141e1a",
+                        "primary": "#006948",
+                        "surface-bright": "#FFFFFF",
+                        "habit-plum": "#7A3E86",
+                        "secondary-container": "#fea949",
+                        "inverse-primary": "#76daab",
+                        "on-background": "#0e1f19",
+                        "surface-tint": "#006c4a",
+                        "on-secondary-fixed": "#2c1600",
+                        "inverse-surface": "#23342d",
+                        "on-secondary-fixed-variant": "#693c00",
+                        "primary-fixed-dim": "#76daab",
+                        "surface-variant": "#d4e7dd",
+                        "primary-container": "#10855d",
+                        "on-primary": "#ffffff",
+                        "tertiary-fixed": "#dae5e0",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "surface": "#eafef4",
+                        "secondary-fixed-dim": "#ffb86e",
+                        "on-secondary-container": "#6f4000",
+                        "on-tertiary-container": "#f4fffa",
+                        "habit-olive": "#5F7327",
+                        "surface-container": "#dff2e9",
+                        "surface-container-high": "#d9ede3",
+                        "habit-amber": "#B9700F",
+                        "surface-container-lowest": "#ffffff",
+                        "habit-ocean": "#1C6C8C",
+                        "on-error-container": "#93000a",
+                        "background": "#F3F6F1",
+                        "on-surface": "#0e1f19",
+                        "surface-container-low": "#e5f8ee",
+                        "secondary": "#8a5100",
+                        "tertiary-fixed-dim": "#bec9c4",
+                        "surface-dim": "#cbded5",
+                        "on-primary-fixed": "#002114",
+                        "habit-indigo": "#3B4E9B",
+                        "secondary-fixed": "#ffdcbd",
+                        "on-primary-container": "#f5fff7",
+                        "habit-slate": "#4A5A63",
+                        "primary-fixed": "#92f6c6",
+                        "outline": "#6e7a72",
+                        "tertiary": "#535e5a",
+                        "tertiary-container": "#6c7773",
+                        "habit-moss": "#1B8A62",
+                        "inverse-on-surface": "#e2f5eb",
+                        "surface-container-highest": "#d4e7dd",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed-variant": "#3e4945"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px",
+                        "card": "14px",
+                    },
+                    spacing: {
+                        "max-width": "640px",
+                        "content-max": "900px",
+                        "xl": "24px",
+                        "xxl": "32px",
+                        "md": "12px",
+                        "lg": "16px",
+                        "page-margin": "20px",
+                        "huge": "48px",
+                        "xs": "4px",
+                        "unit": "4px",
+                        "sm": "8px"
+                    },
+                    fontFamily: {
+                        "counter-lg": ["JetBrains Mono", "monospace"],
+                        "body-md": ["Hanken Grotesk", "sans-serif"],
+                        "label-caps": ["Hanken Grotesk", "sans-serif"],
+                        "title-sm": ["Hanken Grotesk", "sans-serif"],
+                        "counter-sm": ["JetBrains Mono", "monospace"],
+                        "display-lg": ["Hanken Grotesk", "sans-serif"],
+                        "body-sm": ["Hanken Grotesk", "sans-serif"],
+                        "headline-md": ["Hanken Grotesk", "sans-serif"]
+                    },
+                    fontSize: {
+                        "counter-lg": ["20px", { lineHeight: "24px", letterSpacing: "0em", fontWeight: "600" }],
+                        "body-md": ["16px", { lineHeight: "24px", letterSpacing: "0em", fontWeight: "500" }],
+                        "label-caps": ["12px", { lineHeight: "16px", letterSpacing: "0.14em", fontWeight: "700" }],
+                        "title-sm": ["19px", { lineHeight: "26px", letterSpacing: "-0.01em", fontWeight: "700" }],
+                        "counter-sm": ["14px", { lineHeight: "18px", letterSpacing: "0em", fontWeight: "500" }],
+                        "display-lg": ["32px", { lineHeight: "40px", letterSpacing: "-0.03em", fontWeight: "800" }],
+                        "body-sm": ["13px", { lineHeight: "18px", letterSpacing: "0.01em", fontWeight: "400" }],
+                        "headline-md": ["24px", { lineHeight: "32px", letterSpacing: "-0.02em", fontWeight: "700" }]
+                    },
+                    boxShadow: {
+                        "card": "0 1px 2px rgba(16,26,23,.05), 0 4px 12px rgba(16,26,23,.05)"
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #F3F6F1;
+            color: #0e1f19;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        /* Custom Scrollbar for inner elements if needed */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d4e7dd;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #bdcac0;
+        }
+        
+        .heatmap-cell {
+            width: 11px;
+            height: 11px;
+            border-radius: 2.5px;
+            background-color: #E8EDE5;
+        }
+        .heatmap-cell.lvl-1 { background-color: rgba(27, 138, 98, 0.2); }
+        .heatmap-cell.lvl-2 { background-color: rgba(27, 138, 98, 0.4); }
+        .heatmap-cell.lvl-3 { background-color: rgba(27, 138, 98, 0.6); }
+        .heatmap-cell.lvl-4 { background-color: rgba(27, 138, 98, 0.8); }
+        .heatmap-cell.lvl-5 { background-color: #1B8A62; }
+    </style>
+</head>
+<body class="font-body-md text-on-surface antialiased bg-background">
+<!-- Sidebar {{DATA:COMPONENTS:COMPONENTS_23}} -->
+<nav class="fixed left-0 top-0 h-full w-[240px] bg-surface-container-low dark:bg-surface-dim border-r border-outline-variant dark:border-outline hidden md:flex flex-col p-lg justify-between z-20">
+<div>
+<div class="mb-xxl flex items-center gap-md px-md">
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-sm">water_drop</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md text-on-surface dark:text-on-primary-fixed leading-tight">HabitTrack</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Stay Disciplined</p>
+</div>
+</div>
+<ul class="space-y-sm">
+<li>
+<a class="flex items-center gap-md px-lg py-md text-on-surface-variant dark:text-surface-variant hover:bg-surface-variant dark:hover:bg-inverse-surface rounded-lg transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="font-body-md text-body-md">Today</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-md px-lg py-md bg-secondary-container dark:bg-secondary text-on-secondary-container dark:text-on-secondary rounded-lg font-bold transition-transform duration-200 scale-98 shadow-sm" href="#">
+<span class="material-symbols-outlined">event_repeat</span>
+<span class="font-body-md text-body-md">Habits</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-md px-lg py-md text-on-surface-variant dark:text-surface-variant hover:bg-surface-variant dark:hover:bg-inverse-surface rounded-lg transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="font-body-md text-body-md">Statistics</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-md px-lg py-md text-on-surface-variant dark:text-surface-variant hover:bg-surface-variant dark:hover:bg-inverse-surface rounded-lg transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-md text-body-md">Settings</span>
+</a>
+</li>
+</ul>
+</div>
+<div>
+<a class="flex items-center gap-md px-lg py-md text-on-surface-variant dark:text-surface-variant hover:bg-surface-variant dark:hover:bg-inverse-surface rounded-lg transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">account_circle</span>
+<span class="font-body-md text-body-md">Profile</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="ml-[240px] flex-1 flex justify-center py-huge px-xl overflow-y-auto">
+<div class="w-full max-w-[900px] flex flex-col gap-xl">
+<!-- Header Row -->
+<header class="flex items-center justify-between pb-sm">
+<div class="flex items-center gap-lg">
+<button class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:bg-surface-variant rounded-full transition-colors">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-habit-moss">
+<span class="material-symbols-outlined fill">self_improvement</span>
+</div>
+<div>
+<h2 class="font-display-lg text-display-lg text-on-surface leading-tight">Morning Meditation</h2>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">Daily</span>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="font-body-md text-body-md text-on-surface hover:text-on-surface-variant px-md py-sm rounded-lg hover:bg-surface-variant transition-colors">Edit</button>
+<button class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:bg-surface-variant rounded-full transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</header>
+<!-- Stat Tiles Row -->
+<section class="grid grid-cols-1 md:grid-cols-4 gap-lg">
+<!-- Tile 1 -->
+<div class="bg-surface-bright rounded-card p-lg shadow-card flex flex-col justify-between min-h-[100px]">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Current streak</span>
+<div class="font-counter-lg text-[32px] leading-[40px] text-habit-amber">14</div>
+</div>
+<!-- Tile 2 -->
+<div class="bg-surface-bright rounded-card p-lg shadow-card flex flex-col justify-between min-h-[100px]">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Best streak</span>
+<div class="font-counter-lg text-[32px] leading-[40px] text-on-surface">41</div>
+</div>
+<!-- Tile 3 -->
+<div class="bg-surface-bright rounded-card p-lg shadow-card flex flex-col justify-between min-h-[100px]">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Completion</span>
+<div class="font-counter-lg text-[32px] leading-[40px] text-on-surface">87%</div>
+</div>
+<!-- Tile 4 -->
+<div class="bg-surface-bright rounded-card p-lg shadow-card flex flex-col justify-between min-h-[100px]">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Total days</span>
+<div class="font-counter-lg text-[32px] leading-[40px] text-on-surface">128</div>
+</div>
+</section>
+<!-- Year Heatmap Card -->
+<section class="bg-surface-bright rounded-card p-xl shadow-card">
+<div class="flex justify-between items-end mb-lg">
+<h3 class="font-title-sm text-title-sm text-on-surface">Activity</h3>
+</div>
+<div class="overflow-x-auto pb-sm">
+<div class="flex gap-[3px] min-w-max" id="heatmap-container">
+<!-- Heatmap cells will be generated via JS for brevity but here is the structure -->
+<script>
+                            document.addEventListener("DOMContentLoaded", () => {
+                                const container = document.getElementById('heatmap-container');
+                                const weeks = 52;
+                                const days = 7;
+                                
+                                for(let w=0; w<weeks; w++) {
+                                    const col = document.createElement('div');
+                                    col.className = 'flex flex-col gap-[3px]';
+                                    for(let d=0; d<days; d++) {
+                                        const cell = document.createElement('div');
+                                        // Randomize levels for demonstration
+                                        const lvl = Math.floor(Math.random() * 6);
+                                        cell.className = `heatmap-cell ${lvl > 0 ? 'lvl-'+lvl : ''}`;
+                                        col.appendChild(cell);
+                                    }
+                                    container.appendChild(col);
+                                }
+                            });
+                        </script>
+</div>
+</div>
+<div class="flex justify-end items-center gap-sm mt-md font-label-caps text-[10px] text-on-surface-variant">
+<span>Less</span>
+<div class="flex gap-[3px]">
+<div class="heatmap-cell"></div>
+<div class="heatmap-cell lvl-1"></div>
+<div class="heatmap-cell lvl-2"></div>
+<div class="heatmap-cell lvl-3"></div>
+<div class="heatmap-cell lvl-4"></div>
+<div class="heatmap-cell lvl-5"></div>
+</div>
+<span>More</span>
+</div>
+</section>
+<!-- Split Row -->
+<section class="grid grid-cols-1 lg:grid-cols-2 gap-xl">
+<!-- Left Card: Bar Chart -->
+<div class="bg-surface-bright rounded-card p-xl shadow-card flex flex-col h-full">
+<h3 class="font-title-sm text-title-sm text-on-surface mb-lg">Completion by Day</h3>
+<div class="flex-1 flex flex-col justify-end gap-md pt-lg relative">
+<!-- Chart content mock -->
+<div class="flex justify-between items-end h-32 gap-sm relative z-10">
+<!-- Mon -->
+<div class="w-full flex flex-col items-center gap-sm">
+<div class="w-full bg-habit-moss rounded-t-sm h-[60%]"></div>
+<span class="font-label-caps text-on-surface-variant">M</span>
+</div>
+<!-- Tue -->
+<div class="w-full flex flex-col items-center gap-sm">
+<div class="w-full bg-habit-moss rounded-t-sm h-[80%]"></div>
+<span class="font-label-caps text-on-surface-variant">T</span>
+</div>
+<!-- Wed -->
+<div class="w-full flex flex-col items-center gap-sm">
+<div class="w-full bg-habit-moss rounded-t-sm h-[95%]"></div>
+<span class="font-label-caps text-on-surface-variant">W</span>
+</div>
+<!-- Thu -->
+<div class="w-full flex flex-col items-center gap-sm">
+<div class="w-full bg-habit-moss rounded-t-sm h-[40%]"></div>
+<span class="font-label-caps text-on-surface-variant">T</span>
+</div>
+<!-- Fri -->
+<div class="w-full flex flex-col items-center gap-sm">
+<div class="w-full bg-habit-moss rounded-t-sm h-[70%]"></div>
+<span class="font-label-caps text-on-surface-variant">F</span>
+</div>
+<!-- Sat -->
+<div class="w-full flex flex-col items-center gap-sm">
+<div class="w-full bg-habit-moss rounded-t-sm h-[20%]"></div>
+<span class="font-label-caps text-on-surface-variant">S</span>
+</div>
+<!-- Sun -->
+<div class="w-full flex flex-col items-center gap-sm">
+<div class="w-full bg-habit-moss rounded-t-sm h-[50%]"></div>
+<span class="font-label-caps text-on-surface-variant">S</span>
+</div>
+</div>
+<!-- Background grid lines -->
+<div class="absolute inset-x-0 bottom-7 top-0 flex flex-col justify-between pointer-events-none z-0 border-b border-outline-variant pb-7">
+<div class="border-b border-outline-variant/30 w-full"></div>
+<div class="border-b border-outline-variant/30 w-full"></div>
+<div class="border-b border-outline-variant/30 w-full"></div>
+<div class="border-b border-outline-variant/30 w-full"></div>
+</div>
+</div>
+</div>
+<!-- Right Card: This Week -->
+<div class="bg-surface-bright rounded-card p-xl shadow-card flex flex-col h-full">
+<h3 class="font-title-sm text-title-sm text-on-surface mb-lg">This Week</h3>
+<div class="grid grid-cols-7 gap-sm flex-1 content-center">
+<!-- M -->
+<div class="flex flex-col items-center gap-md">
+<span class="font-label-caps text-on-surface-variant">M</span>
+<div class="w-10 h-10 rounded-full bg-habit-moss flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[20px] font-bold">check</span>
+</div>
+</div>
+<!-- T -->
+<div class="flex flex-col items-center gap-md">
+<span class="font-label-caps text-on-surface-variant">T</span>
+<div class="w-10 h-10 rounded-full bg-habit-moss flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[20px] font-bold">check</span>
+</div>
+</div>
+<!-- W -->
+<div class="flex flex-col items-center gap-md">
+<span class="font-label-caps text-on-surface-variant">W</span>
+<div class="w-10 h-10 rounded-full bg-error flex items-center justify-center text-on-error">
+<span class="material-symbols-outlined text-[20px] font-bold">close</span>
+</div>
+</div>
+<!-- T -->
+<div class="flex flex-col items-center gap-md">
+<span class="font-label-caps text-on-surface-variant">T</span>
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-outline">
+<div class="w-3 h-[2px] bg-outline rounded-full"></div>
+</div>
+</div>
+<!-- F -->
+<div class="flex flex-col items-center gap-md">
+<span class="font-label-caps text-on-surface-variant">F</span>
+<div class="w-10 h-10 rounded-full bg-habit-moss flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[20px] font-bold">check</span>
+</div>
+</div>
+<!-- S -->
+<div class="flex flex-col items-center gap-md">
+<span class="font-label-caps text-on-surface-variant">S</span>
+<div class="w-10 h-10 rounded-full bg-surface-container-low border border-outline-variant flex items-center justify-center relative">
+</div>
+</div>
+<!-- S -->
+<div class="flex flex-col items-center gap-md">
+<span class="font-label-caps text-on-surface-variant text-primary font-bold">S</span>
+<div class="w-10 h-10 rounded-full bg-surface-container-low border border-outline-variant flex items-center justify-center relative">
+<div class="absolute -bottom-2 w-1 h-1 bg-on-surface rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Notes List Card -->
+<section class="bg-surface-bright rounded-card shadow-card overflow-hidden">
+<div class="p-lg border-b border-outline-variant/40 bg-surface-container-lowest">
+<h3 class="font-title-sm text-title-sm text-on-surface">Notes</h3>
+</div>
+<ul class="flex flex-col">
+<!-- Note 1 -->
+<li class="flex items-start gap-lg p-lg border-b border-outline-variant/30 hover:bg-surface-container-low transition-colors group">
+<div class="w-16 flex-shrink-0">
+<span class="font-counter-sm text-counter-sm text-on-surface-variant">10.24</span>
+</div>
+<div class="flex-1">
+<p class="font-body-md text-body-md text-on-surface">Felt very distracted today. Mind kept wandering to work.</p>
+</div>
+<div class="w-6 h-6 flex items-center justify-center pt-1">
+<div class="w-3 h-3 rounded-full bg-habit-moss"></div>
+</div>
+</li>
+<!-- Note 2 -->
+<li class="flex items-start gap-lg p-lg border-b border-outline-variant/30 hover:bg-surface-container-low transition-colors group">
+<div class="w-16 flex-shrink-0">
+<span class="font-counter-sm text-counter-sm text-on-surface-variant">10.22</span>
+</div>
+<div class="flex-1">
+<p class="font-body-md text-body-md text-on-surface">Deep session. 15 minutes felt like 5.</p>
+</div>
+<div class="w-6 h-6 flex items-center justify-center pt-1">
+<div class="w-3 h-3 rounded-full bg-habit-moss"></div>
+</div>
+</li>
+<!-- Note 3 -->
+<li class="flex items-start gap-lg p-lg border-b border-outline-variant/30 hover:bg-surface-container-low transition-colors group">
+<div class="w-16 flex-shrink-0">
+<span class="font-counter-sm text-counter-sm text-on-surface-variant">10.18</span>
+</div>
+<div class="flex-1">
+<p class="font-body-md text-body-md text-on-surface-variant italic">Skipped because I overslept.</p>
+</div>
+<div class="w-6 h-6 flex items-center justify-center pt-1">
+<div class="px-2 py-1 rounded bg-surface-container-high text-outline text-[10px] font-bold uppercase tracking-wider leading-none">Skip</div>
+</div>
+</li>
+<!-- Note 4 -->
+<li class="flex items-start gap-lg p-lg border-b border-outline-variant/30 hover:bg-surface-container-low transition-colors group">
+<div class="w-16 flex-shrink-0">
+<span class="font-counter-sm text-counter-sm text-on-surface-variant">10.15</span>
+</div>
+<div class="flex-1">
+<p class="font-body-md text-body-md text-on-surface">Standard session. Focus was okay.</p>
+</div>
+<div class="w-6 h-6 flex items-center justify-center pt-1">
+<div class="w-3 h-3 rounded-full bg-habit-moss"></div>
+</div>
+</li>
+<!-- Note 5 -->
+<li class="flex items-start gap-lg p-lg hover:bg-surface-container-low transition-colors group">
+<div class="w-16 flex-shrink-0">
+<span class="font-counter-sm text-counter-sm text-on-surface-variant">10.12</span>
+</div>
+<div class="flex-1">
+<p class="font-body-md text-body-md text-on-surface">Longer session today, 20 mins.</p>
+</div>
+<div class="w-6 h-6 flex items-center justify-center pt-1">
+<div class="w-3 h-3 rounded-full bg-habit-moss"></div>
+</div>
+</li>
+</ul>
+</section>
+</div>
+</main>
+</body></html>

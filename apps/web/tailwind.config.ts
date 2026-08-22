@@ -1,0 +1,50 @@
+import type { Config } from "tailwindcss";
+const variable = (name: string) => `var(--${name})`;
+export default {
+  content: ["./src/**/*.{ts,tsx}"],
+  theme: {
+    extend: {
+      colors: {
+        ground: variable("color-ground"),
+        surface: variable("color-surface"),
+        "surface-2": variable("color-surface-2"),
+        ink: variable("color-ink"),
+        "ink-2": variable("color-ink-2"),
+        "ink-3": variable("color-ink-3"),
+        line: variable("color-line"),
+        "line-soft": variable("color-line-soft"),
+        done: variable("color-done"),
+        "done-soft": variable("color-done-soft"),
+        "done-ink": variable("color-done-ink"),
+        streak: variable("color-streak"),
+        "streak-soft": variable("color-streak-soft"),
+        "streak-ink": variable("color-streak-ink"),
+        miss: variable("color-miss"),
+        "miss-soft": variable("color-miss-soft"),
+      },
+      spacing: {
+        1: variable("space-1"),
+        2: variable("space-2"),
+        3: variable("space-3"),
+        4: variable("space-4"),
+        5: variable("space-5"),
+        6: variable("space-6"),
+        7: variable("space-7"),
+        8: variable("space-8"),
+        page: variable("layout-page-margin"),
+        tap: variable("layout-tap-target"),
+      },
+      borderRadius: {
+        chip: variable("radius-chip"),
+        check: variable("radius-check"),
+        input: variable("radius-input"),
+        card: variable("radius-card"),
+        sheet: variable("radius-sheet"),
+      },
+      boxShadow: { card: variable("elevation-card") },
+      maxWidth: { content: variable("layout-content-max") },
+      fontFamily: { sans: ["var(--font-hanken)"], mono: ["var(--font-jetbrains)"] },
+    },
+  },
+  plugins: [],
+} satisfies Config;

@@ -1,0 +1,36 @@
+{
+  "name": "@habits/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "test": "vitest run",
+    "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@habits/core": "workspace:*",
+    "@habits/db": "workspace:*",
+    "@habits/services": "workspace:*",
+    "@habits/tokens": "workspace:*",
+    "@trpc/server": "11.5.0",
+    "jose": "6.1.0",
+    "next": "15.5.2",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "server-only": "0.0.1",
+    "zod": "4.1.5"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "6.8.0",
+    "@testing-library/react": "16.3.0",
+    "@types/react": "19.1.12",
+    "@types/react-dom": "19.1.9",
+    "autoprefixer": "10.4.21",
+    "jsdom": "26.1.0",
+    "postcss": "8.5.6",
+    "tailwindcss": "3.4.17"
+  }
+}

@@ -10,3 +10,6 @@ pnpm-workspace.yaml
 tsconfig.base.json
 .corepack
 .pnpm-store
+.pnpm-cache
+.pnpm-web
+.pnpm-home
