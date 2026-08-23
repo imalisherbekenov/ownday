@@ -1,26 +1,36 @@
 "use client";
 
 import { useEffect, type ReactNode } from "react";
-import { PrimaryAction } from "@ownday/ui";
+import Link from "next/link";
+import { PrimaryAction, type LinkRenderer } from "@ownday/ui";
 import { useTelegram } from "./telegram-provider";
+
+const renderLink: LinkRenderer = ({ href, children, className }) => (
+  <Link href={href} className={className}>
+    {children}
+  </Link>
+);
 
 export function PrimaryActionAdapter({
   children,
   formId,
+  href,
 }: {
   children: ReactNode;
   formId?: string;
+  href?: string;
 }) {
   const telegram = useTelegram();
   const label = typeof children === "string" ? children : "Continue";
   useEffect(() => {
-    if (!telegram.webApp) return;
+    if (!telegram.webApp || !formId) return;
     const { MainButton } = telegram.webApp;
+    const target = document.getElementById(formId ?? "");
+    const form = target instanceof HTMLFormElement ? target : target?.querySelector("form");
+    const nativeButton = form?.querySelector<HTMLButtonElement>("button.primary");
+    if (nativeButton) nativeButton.hidden = true;
     const submit = () => {
-      if (formId)
-        document
-          .getElementById(formId)
-          ?.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+      form?.requestSubmit();
     };
     MainButton.setText(label);
     MainButton.onClick(submit);
@@ -28,10 +38,16 @@ export function PrimaryActionAdapter({
     return () => {
       MainButton.offClick(submit);
       MainButton.hide();
+      if (nativeButton) nativeButton.hidden = false;
     };
   }, [telegram.webApp, label, formId]);
   return (
-    <PrimaryAction formId={formId} hidden={telegram.webApp !== null}>
+    <PrimaryAction
+      formId={formId}
+      href={href}
+      renderLink={renderLink}
+      hidden={telegram.webApp !== null && Boolean(formId)}
+    >
       {children}
     </PrimaryAction>
   );

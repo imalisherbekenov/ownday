@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const refresh = vi.fn();
@@ -36,8 +36,11 @@ function Probe() {
 
 describe("TelegramProvider", () => {
   afterEach(() => {
+    cleanup();
     window.history.replaceState({}, "", "/");
+    window.sessionStorage.clear();
     delete window.Telegram;
+    delete document.documentElement.dataset.miniApp;
     delete document.documentElement.dataset.telegramSdkLoaded;
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
@@ -61,6 +64,47 @@ describe("TelegramProvider", () => {
     expect(screen.getByText("telegram-web-app")).toBeInTheDocument();
     expect(window.Telegram?.WebApp.initData).not.toBe("");
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("keeps the development mock active after the query param disappears", async () => {
+    window.history.replaceState({}, "", "/?mockTelegram=1");
+    const firstRender = render(
+      <TelegramProvider>
+        <Probe />
+      </TelegramProvider>,
+    );
+
+    await waitFor(() => expect(screen.getByText("ready")).toBeInTheDocument());
+    firstRender.unmount();
+    delete window.Telegram;
+    delete document.documentElement.dataset.miniApp;
+    window.history.replaceState({}, "", "/habits/example");
+
+    render(
+      <TelegramProvider>
+        <Probe />
+      </TelegramProvider>,
+    );
+
+    await waitFor(() => expect(screen.getByText("ready")).toBeInTheDocument());
+    expect(window.location.search).toBe("");
+    expect(document.documentElement.dataset.miniApp).toBe("true");
+    expect(screen.getByText("telegram-web-app")).toBeInTheDocument();
+  });
+
+  it("never enables the development mock when the query param was never present", async () => {
+    window.history.replaceState({}, "", "/");
+
+    render(
+      <TelegramProvider>
+        <Probe />
+      </TelegramProvider>,
+    );
+
+    await waitFor(() => expect(screen.getByText("anonymous")).toBeInTheDocument());
+    expect(document.documentElement.dataset.miniApp).toBeUndefined();
+    expect(window.Telegram).toBeUndefined();
+    expect(window.sessionStorage.length).toBe(0);
   });
 
   it("does not expose the mock in production", async () => {

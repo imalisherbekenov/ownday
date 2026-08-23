@@ -61,7 +61,7 @@ export default async function TodayPage() {
         )}
       </section>
       <div className="mt-6">
-        <PrimaryActionAdapter>Add a habit</PrimaryActionAdapter>
+        <PrimaryActionAdapter href="/habits/new">Add a habit</PrimaryActionAdapter>
       </div>
     </main>
   );

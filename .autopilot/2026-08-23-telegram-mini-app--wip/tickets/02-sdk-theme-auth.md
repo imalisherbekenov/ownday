@@ -2,7 +2,7 @@
 
 **Требования:** R01, R01.1, R01.2, R01.3, R05i, R05i.1, R08i, R08i.1, R08i.2, R09i.1, R11i, A01
 **Blocked by:** 01
-**Зона:** `apps/web/src/app/layout.tsx` · `apps/web/src/components/telegram-provider.tsx` · `apps/web/src/app/api/auth/telegram/route.ts`
+**Зона:** `apps/web/src/app/layout.tsx` · `apps/web/src/components/telegram-provider.tsx` · `apps/web/src/app/api/auth/telegram/route.ts` · **(расширено по D02)** `app-shell.tsx`, `primary-action-adapter.tsx`, `habit-row-adapter.tsx` — только приведение мест вызова
 **Волна:** 2
 **Status:** ready
 

@@ -33,7 +33,7 @@ export default async function StatsPage({
     });
   return (
     <main className="page py-6">
-      <header className="mb-6">
+      <header className="app-header mb-6">
         <p className="label">Обзор</p>
         <h1 className="text-[32px] font-extrabold tracking-[-.03em]">Статистика</h1>
       </header>

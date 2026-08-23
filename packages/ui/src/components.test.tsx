@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { StreakPill, streakMode } from "./streak-pill";
 import { HabitRow } from "./habit-row";
 import { Heatmap, intensityStyle } from "./heatmap";
+import { PrimaryAction } from "./primary-action";
 
 const base = {
   id: "h1",
@@ -86,5 +87,38 @@ describe("Heatmap", () => {
     expect(intensityStyle(0)).toContain("surface-2");
     expect(intensityStyle(2)).toContain("55%");
     expect(intensityStyle(4)).toContain("done");
+  });
+});
+
+describe("PrimaryAction", () => {
+  it("renders an href through the supplied renderer with button-equivalent classes", () => {
+    const renderLink = vi.fn(
+      ({
+        href,
+        children,
+        className,
+      }: Parameters<NonNullable<React.ComponentProps<typeof PrimaryAction>["renderLink"]>>[0]) => (
+        <a href={href} className={className}>
+          {children}
+        </a>
+      ),
+    );
+    const linked = render(
+      <PrimaryAction href="/habits/new" renderLink={renderLink}>
+        Add a habit
+      </PrimaryAction>,
+    );
+    const link = linked.getByRole("link", { name: "Add a habit" });
+    expect(link).toHaveAttribute("href", "/habits/new");
+    expect(renderLink).toHaveBeenCalledOnce();
+    linked.unmount();
+
+    render(<PrimaryAction>Add a habit</PrimaryAction>);
+    expect(link.className).toBe(screen.getByRole("button", { name: "Add a habit" }).className);
+  });
+
+  it("renders without an href as a button", () => {
+    render(<PrimaryAction>Add a habit</PrimaryAction>);
+    expect(screen.getByRole("button", { name: "Add a habit" })).toHaveAttribute("type", "button");
   });
 });

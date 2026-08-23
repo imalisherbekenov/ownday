@@ -74,6 +74,10 @@ function useTelegram(): TelegramContext;
 `status === "anonymous"` означает «мы не в Telegram» — это **не ошибка**, это обычный веб.
 Оболочка выбирается по `webApp !== null`, а не по `status`.
 
+**По D04:** `webApp` непустой **только при непустом `initData`**. SDK Telegram создаёт
+`window.Telegram.WebApp` в любом браузере, поэтому наличие объекта средой не является.
+Провайдер обязан класть в `webApp` `null`, пока `initData` пуст.
+
 ### Швы для тестов — два, оба существуют
 
 - `apps/web/src/lib/session.ts` — чистая `sessionCookieOptions()` и парность

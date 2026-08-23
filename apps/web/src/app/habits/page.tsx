@@ -18,7 +18,7 @@ export default async function HabitsPage({
   const streaks = Object.fromEntries(stats.map((s) => [s.habitId, s.currentStreak]));
   return (
     <main className="page py-6">
-      <header className="mb-6">
+      <header className="app-header mb-6">
         <p className="label">Библиотека</p>
         <h1 className="text-[32px] font-extrabold tracking-[-.03em]">Все привычки</h1>
       </header>

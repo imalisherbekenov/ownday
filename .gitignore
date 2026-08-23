@@ -16,3 +16,9 @@ apps/mobile/android/
 apps/mobile/ios/
 apps/mobile/.expo/
 .autopilot/serve.*
+
+# временные артефакты браузерных проверок
+.playwright-cli/
+.playwright-local/
+.playwright-daemon/
+.dev-*.log

@@ -49,6 +49,8 @@ const Context = createContext<TelegramContext>({
   retry: () => undefined,
 });
 
+const MOCK_TELEGRAM_SESSION_KEY = "ownday:mock-telegram";
+
 export function useTelegram(): TelegramContext {
   return useContext(Context);
 }
@@ -93,12 +95,21 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
     let cancelled = false;
     const initialise = () => {
       const mockRequested = new URLSearchParams(window.location.search).get("mockTelegram") === "1";
-      const mockEnabled =
+      const realTelegramActive = Boolean(window.Telegram?.WebApp?.initData);
+      if (
         process.env.NODE_ENV !== "production" &&
         mockRequested &&
-        !window.Telegram?.WebApp?.initData;
+        !realTelegramActive
+      ) {
+        window.sessionStorage.setItem(MOCK_TELEGRAM_SESSION_KEY, "1");
+      }
+      const mockEnabled =
+        process.env.NODE_ENV !== "production" &&
+        !realTelegramActive &&
+        window.sessionStorage.getItem(MOCK_TELEGRAM_SESSION_KEY) === "1";
       if (mockEnabled) {
         window.Telegram = { WebApp: createMockTelegram() };
+        document.documentElement.dataset.miniApp = "true";
       }
 
       const candidate = window.Telegram?.WebApp;

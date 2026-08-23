@@ -1,6 +1,7 @@
 import { SettingsForm } from "@/components/settings-form";
 import { getCurrentUserId, services } from "@/lib/services";
 import { deleteAccountAction, exportDataAction, saveSettingsAction } from "./actions";
+import { PrimaryActionAdapter } from "@/components/primary-action-adapter";
 export const dynamic = "force-dynamic";
 export default async function SettingsPage() {
   const userId = await getCurrentUserId(),
@@ -12,19 +13,22 @@ export default async function SettingsPage() {
   ]);
   return (
     <main className="page py-6">
-      <header className="mb-6">
+      <header className="app-header mb-6">
         <p className="label">Профиль</p>
         <h1 className="text-[32px] font-extrabold tracking-[-.03em]">Настройки</h1>
       </header>
-      <SettingsForm
-        timezone={user.timezone}
-        dayStartHour={user.dayStartHour}
-        telegram={telegram?.externalId}
-        email={email?.externalId}
-        action={saveSettingsAction}
-        exportAction={exportDataAction}
-        deleteAction={deleteAccountAction}
-      />
+      <div id="settings-form">
+        <SettingsForm
+          timezone={user.timezone}
+          dayStartHour={user.dayStartHour}
+          telegram={telegram?.externalId}
+          email={email?.externalId}
+          action={saveSettingsAction}
+          exportAction={exportDataAction}
+          deleteAction={deleteAccountAction}
+        />
+      </div>
+      <PrimaryActionAdapter formId="settings-form">Сохранить настройки</PrimaryActionAdapter>
     </main>
   );
 }

@@ -9,7 +9,7 @@ export default async function TemplatesPage() {
   const templates = await services.listTemplates(user?.locale ?? "ru");
   return (
     <main className="page py-6">
-      <header className="mb-6">
+      <header className="app-header mb-6">
         <p className="label">Быстрый старт</p>
         <h1 className="text-[32px] font-extrabold tracking-[-.03em]">Шаблоны</h1>
         <p className="mt-2 text-ink-3">Добавьте готовую привычку одним нажатием.</p>
