@@ -4,20 +4,41 @@ import {
   InMemoryEntryRepository,
   InMemoryHabitRepository,
   InMemoryReminderRepository,
+  InMemoryTemplateRepository,
   InMemoryUserRepository,
 } from "@ownday/services";
-import { callback, today, type BotContext, type Session } from "./handlers.js";
+import {
+  callback,
+  habits,
+  help,
+  newHabit,
+  settings,
+  start,
+  stats,
+  text,
+  today,
+  type BotContext,
+  type Session,
+} from "./handlers.js";
 const now = new Date("2024-01-02T12:00:00Z");
 function setup() {
   const habits = new InMemoryHabitRepository(),
     entries = new InMemoryEntryRepository(),
     users = new InMemoryUserRepository(),
     reminders = new InMemoryReminderRepository(),
-    services = createServices({ habits, entries, users, reminders }),
+    templates = new InMemoryTemplateRepository(),
+    services = createServices({ habits, entries, users, reminders, templates }),
     reply = vi.fn(async () => {}),
     answer = vi.fn(async () => {}),
+    edit = vi.fn(async () => {}),
     session: Session = { lang: "en" },
-    ctx = { from: { id: 42 }, session, reply, answerCallbackQuery: answer } as BotContext;
+    ctx = {
+      from: { id: 42 },
+      session,
+      reply,
+      answerCallbackQuery: answer,
+      editMessageText: edit,
+    } as BotContext;
   return {
     habits,
     entries,
@@ -27,6 +48,7 @@ function setup() {
     ctx,
     reply,
     answer,
+    edit,
     deps: { services, users, reminders, now: () => now },
   };
 }
@@ -44,7 +66,10 @@ describe("bot handlers", () => {
     const s = setup();
     await onboard(s);
     await today(s.ctx, s.deps);
-    expect(s.reply).toHaveBeenCalledWith("No habits are due today.");
+    expect(s.reply).toHaveBeenCalledWith(
+      "No habits are due today.",
+      expect.objectContaining({ reply_markup: expect.any(Object) }),
+    );
   });
   it("marks from a callback", async () => {
     const s = setup(),
@@ -157,5 +182,89 @@ describe("bot handlers", () => {
     await callback(s.ctx, s.deps);
     const [habit] = await s.habits.listByUser(user.id);
     expect(habit?.scheduleVersions[0]?.validFrom).toBe("2024-01-02");
+  });
+
+  it("never sends a command response without reply_markup", async () => {
+    for (const populated of [false, true]) {
+      for (const handler of [today, habits, stats, settings, help] as const) {
+        const s = setup();
+        const user = await onboard(s);
+        if (populated) {
+          await s.services.createHabit({
+            userId: user.id,
+            title: "Read",
+            type: "binary",
+            schedule: { kind: "daily" },
+            validFrom: "2023-12-01",
+          });
+        }
+        await handler(s.ctx, s.deps);
+        for (const call of s.reply.mock.calls) expect(call[1]?.reply_markup).toBeTruthy();
+      }
+      const s = setup();
+      await onboard(s);
+      await newHabit(s.ctx, s.deps);
+      for (const call of s.reply.mock.calls) expect(call[1]?.reply_markup).toBeTruthy();
+    }
+  });
+
+  it.each([
+    ["Сегодня", "en"],
+    ["Today", "ru"],
+  ] as const)("routes the other language menu label %s", async (label, lang) => {
+    const s = setup();
+    const user = await onboard(s);
+    await s.users.update(user.id, { locale: lang });
+    s.ctx.session.lang = lang;
+    s.ctx.message = { text: label };
+    await text(s.ctx, s.deps);
+    expect(s.reply).toHaveBeenCalled();
+    expect(s.reply.mock.calls.at(-1)?.[0]).toContain(lang === "en" ? "No habits" : "привычек");
+  });
+
+  it("asks before leaving the wizard and does not use a menu label as a title", async () => {
+    const s = setup();
+    await onboard(s);
+    s.ctx.session.newHabit = { step: "title" };
+    s.ctx.message = { text: "Statistics" };
+    await text(s.ctx, s.deps);
+    expect(s.ctx.session.newHabit.title).toBeUndefined();
+    expect(s.reply.mock.calls.at(-1)?.[0]).toBe("Interrupt habit creation?");
+  });
+
+  it("does not restart onboarding for a registered user", async () => {
+    const s = setup();
+    await onboard(s);
+    await start(s.ctx, s.deps);
+    expect(s.ctx.session.onboarding).toBeUndefined();
+  });
+
+  it.each([
+    ["Read more", "Create a habit"],
+    ["/wat", "I don't know that command"],
+  ])("responds to arbitrary text %s", async (value, expected) => {
+    const s = setup();
+    await onboard(s);
+    s.ctx.message = { text: value };
+    await text(s.ctx, s.deps);
+    expect(s.reply.mock.calls[0]?.[0]).toContain(expected);
+  });
+
+  it("redraws a completed habit and ignores message-is-not-modified", async () => {
+    const s = setup();
+    const user = await onboard(s);
+    const habit = await s.services.createHabit({
+      userId: user.id,
+      title: "Read",
+      type: "binary",
+      schedule: { kind: "daily" },
+      validFrom: "2024-01-01",
+    });
+    s.ctx.callbackQuery = { data: `m:${habit.id}:2024-01-02:d` };
+    await callback(s.ctx, s.deps);
+    expect(s.edit).toHaveBeenCalledWith(expect.stringContaining("✓"), expect.any(Object));
+    s.edit.mockRejectedValueOnce(new Error("Bad Request: message is not modified"));
+    s.ctx.callbackQuery = { data: `m:${habit.id}:2024-01-02:d` };
+    await expect(callback(s.ctx, s.deps)).resolves.toBeUndefined();
   });
 });

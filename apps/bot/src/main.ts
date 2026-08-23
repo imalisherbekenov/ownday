@@ -4,6 +4,7 @@ import { PrismaClient } from "@ownday/db";
 import { createServices, prismaRepositories } from "@ownday/services";
 import { createBot, prismaSessionStorage } from "./bot.js";
 import { startReminderWorker } from "./worker.js";
+import { setupBot, type SetupApi } from "./setup.js";
 const token = process.env.BOT_TOKEN;
 if (!token) throw new Error("BOT_TOKEN is required");
 const db = new PrismaClient(),
@@ -11,6 +12,7 @@ const db = new PrismaClient(),
   services = createServices(repositories),
   deps = { services, users: repositories.users, reminders: repositories.reminders },
   bot = createBot(token, deps, prismaSessionStorage(db));
+await setupBot(bot.api as unknown as SetupApi);
 startReminderWorker(bot, deps);
 if (process.env.NODE_ENV === "production") {
   const url = process.env.WEBHOOK_URL;

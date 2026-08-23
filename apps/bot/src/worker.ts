@@ -30,8 +30,12 @@ export function startReminderWorker(bot: Bot<any>, d: HandlerDeps) {
             identity = await d.users.findIdentityForUser(r.userId, "telegram"),
             rows = r.habitId ? await d.services.listHabitsForToday(r.userId, now) : [];
           if (!u || !identity) continue;
-          const row = rows.find((x) => x.habit.id === r.habitId),
-            title = row?.habit.title ?? "";
+          const row = rows.find((x) => x.habit.id === r.habitId);
+          if (!row) {
+            await d.services.advanceReminder(r.id, now);
+            continue;
+          }
+          const title = row.habit.title;
           await sendWithRetry(bot, identity.externalId, t(u.locale, "reminder", { title }), {
             inline_keyboard: row
               ? [
