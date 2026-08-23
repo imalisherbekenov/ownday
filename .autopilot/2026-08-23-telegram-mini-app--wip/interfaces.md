@@ -86,4 +86,38 @@ function useTelegram(): TelegramContext;
 
 ## Что построено (растёт по мере сдачи тасков)
 
-_(пусто — ни один таск ещё не сдан)_
+### Из таска 01 — сессия и куки
+
+```ts
+// apps/web/src/lib/session.ts — единственный владелец имени и атрибутов куки
+sessionCookieOptions(): { sameSite: "lax" | "none"; secure: boolean; path: string }
+clearSession(): Promise<void>
+refreshSessionCookie(
+  requestCookies:  { get(name: string): { value: string } | undefined },
+  responseCookies: { set(name: string, value: string, options: object): void },
+): Promise<boolean>
+// прежние, сигнатуры не менялись:
+issueSession · readSession · readSessionFromRequest · issueMobileSession
+```
+
+- `refreshSessionCookie` принимает **структурные** jar'ы, а не типы Next — чтобы шов
+  тестировался юнит-тестом без моков Next. (Первая формулировка утверждала, что так
+  `next/headers` не попадает в edge-бандл; это неверно — `session.ts` импортирует его на
+  верхнем уровне, и бандл middleware его содержит. Причина остаётся верной, обоснование
+  исправлено.)
+- `apps/web/src/middleware.ts` — `middleware(request: NextRequest)` плюс `config.matcher`;
+  исключает `/api`, `_next/static`, `_next/image` и файлы с расширением. Продлевает
+  **существующую** сессию, новую не создаёт.
+- Срок сессии — 7 дней (`maxAge: 604800`), и в JWT, и в куке.
+- Переключатель кросс-сайтовых кук — **только** `CROSS_SITE_COOKIES`. `NODE_ENV` в этом
+  решении не участвует.
+- Имя куки скрыто внутри модуля. Не пиши `habits_session` нигде — зови `clearSession()`.
+- Каноническое имя токена бота — **`TELEGRAM_BOT_TOKEN`**; `BOT_TOKEN` остаётся запасным,
+  чтобы не сломать локальный `.env`. Новый код пишет только каноническое.
+
+### D01 — ворота были недетерминированны
+
+`turbo.json`: `typecheck.dependsOn = ["^typecheck", "build"]`. До этого `typecheck` шёл
+параллельно с `build` и читал `.next/types/**`, которые `build` в тот момент перезаписывал:
+полный прогон то проходил, то падал. **Всегда проверяй ворота больше одного раза**, если
+трогал что-то, из чего Next генерирует типы.

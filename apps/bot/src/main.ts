@@ -5,8 +5,10 @@ import { createServices, prismaRepositories } from "@ownday/services";
 import { createBot, prismaSessionStorage } from "./bot.js";
 import { startReminderWorker } from "./worker.js";
 import { setupBot, type SetupApi } from "./setup.js";
-const token = process.env.BOT_TOKEN;
-if (!token) throw new Error("BOT_TOKEN is required");
+// One secret, one name: the web app reads TELEGRAM_BOT_TOKEN, and BOT_TOKEN stays
+// readable as a fallback so an existing local .env keeps working.
+const token = process.env.TELEGRAM_BOT_TOKEN ?? process.env.BOT_TOKEN;
+if (!token) throw new Error("TELEGRAM_BOT_TOKEN is required");
 const db = new PrismaClient(),
   repositories = prismaRepositories(db),
   services = createServices(repositories),

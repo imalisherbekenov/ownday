@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getCurrentUserId, services } from "@/lib/services";
+import { clearSession, sessionCookieOptions } from "@/lib/session";
 export async function saveSettingsAction(data: FormData) {
   const userId = await getCurrentUserId(),
     timezone = String(data.get("timezone") || "UTC"),
@@ -10,8 +11,10 @@ export async function saveSettingsAction(data: FormData) {
     theme = String(data.get("theme") || "system");
   await services.updateUser(userId, { timezone, dayStartHour });
   const jar = await cookies();
-  if (theme === "system") jar.delete("ownday_theme");
-  else jar.set("ownday_theme", theme, { sameSite: "lax", path: "/" });
+  // Clearing the theme is a cookie write like any other and needs the same
+  // attributes, or inside Telegram the preference silently stays behind.
+  if (theme === "system") jar.set("ownday_theme", "", { ...sessionCookieOptions(), maxAge: 0 });
+  else jar.set("ownday_theme", theme, sessionCookieOptions());
   revalidatePath("/settings");
 }
 export async function exportDataAction() {
@@ -21,6 +24,6 @@ export async function exportDataAction() {
 }
 export async function deleteAccountAction() {
   await services.deleteUser(await getCurrentUserId());
-  (await cookies()).delete("ownday_session");
+  await clearSession();
   redirect("/");
 }

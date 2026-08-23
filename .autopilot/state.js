@@ -11,7 +11,7 @@ window.STATE =
   "memoryFile": "CLAUDE.md",
   "skillDir": "C:/Users/Administrator/.claude/skills/autopilot",
   "startedAt": "2026-08-23T13:48:13+05:00",
-  "updatedAt": "2026-08-23T14:09:28+05:00",
+  "updatedAt": "2026-08-23T14:49:43+05:00",
   "finishedAt": null,
   "stages": [
     {
@@ -48,11 +48,14 @@ window.STATE =
     {
       "id": "build",
       "status": "active",
-      "startedAt": "2026-08-23T14:09:28+05:00"
+      "startedAt": "2026-08-23T14:09:28+05:00",
+      "note": "0 из 4 тасков готовы"
     },
     {
       "id": "review",
-      "status": "pending"
+      "status": "active",
+      "startedAt": "2026-08-23T14:32:35+05:00",
+      "note": "таск 01 на ревью"
     },
     {
       "id": "final",
@@ -86,10 +89,16 @@ window.STATE =
         "apps/web/src/app/settings/",
         "apps/bot/src/main.ts"
       ],
-      "status": "pending",
+      "status": "repair",
       "retries": 0,
-      "repairs": 0,
-      "handoffs": 0
+      "repairs": 2,
+      "handoffs": 0,
+      "startedAt": "2026-08-23T14:14:06+05:00",
+      "repairFindings": [
+        "ворота недетерминированны: typecheck гонится с build за .next/types — D01",
+        "матчер middleware исключает почти все маршруты — R07i недоставлен",
+        "clearSession и удаление куки темы без атрибутов — R07i.2 недоставлен в iframe"
+      ]
     },
     {
       "id": "02",
@@ -173,7 +182,10 @@ window.STATE =
     }
   ],
   "singlePass": null,
-  "tests": null,
+  "tests": {
+    "passed": 42,
+    "failed": 0
+  },
   "debt": {
     "placeholders": [],
     "assumptions": [],
@@ -185,10 +197,23 @@ window.STATE =
     "fixed": 3,
     "note": "haptic и MainButton — потерянные требования, вернулись как R13 и R12; 'четыре поверхности' раскрыты в §17"
   },
-  "concerns": [],
+  "concerns": [
+    "apps/web/src/lib/session.ts:34-42,80-88 — блок записи куки продублирован в issueSession и refreshSessionCookie",
+    "apps/web/src/lib/session.ts — имя sessionCookieOptions() обещает сессию, а одевает все куки приложения",
+    "apps/web/src/middleware.ts:10-12 — Set-Cookie на каждом ответе делает страницы непригодными для общего кэша",
+    "apps/web/src/lib/session.ts:80 — булев результат refreshSessionCookie в проде никто не читает",
+    "apps/web/src/lib/session.test.ts — срок внутри JWT не покрыт ассертом, только maxAge куки",
+    "apps/bot/.env.example — перечисляет SESSION_SECRET и CROSS_SITE_COOKIES, которых бот не читает (дефект критерия таска, не исполнителя)",
+    "apps/bot/src/main.ts:8-10 — текст ошибки называет одно имя переменной, код принимает два",
+    "turbo.json — правка вне зоны таска 01; оправдана D01, но пришла попутно с волной 1",
+    "apps/web/src/lib/session.test.ts:157 — парность очистки сверяется с рукописным литералом на три атрибута; httpOnly утверждён только на выдаче",
+    "apps/web/src/lib/session.test.ts:163 — продление покрыто только при CROSS_SITE_COOKIES=1; захардкоженный sameSite внутри refreshSessionCookie оставит прогон зелёным",
+    "apps/web/src/app/settings/actions.ts:16 — парность куки темы не наблюдается ни одним тестом, держится на чтении глазами",
+    "apps/web/src/middleware.test.ts:6 — тест толкует матчер обычным RegExp, Next компилирует через path-to-regexp; совпадает, пока в шаблоне нет параметров"
+  ],
   "reviewers": {
-    "manifestSpec": null,
-    "craft": null
+    "manifestSpec": "a3dd68d0b12b89e67",
+    "craft": "a31a201defad50a0c"
   },
   "blind": null
 }
