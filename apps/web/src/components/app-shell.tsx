@@ -14,7 +14,7 @@ function active(path: string, href: string) {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname(),
     telegram = useTelegram();
-  if (telegram) return <>{children}</>;
+  if (telegram.webApp !== null) return <>{children}</>;
   return (
     <div className="min-h-[100dvh] lg:pl-[240px]">
       <aside className="fixed inset-y-0 left-0 hidden w-[240px] border-r border-line-soft bg-surface p-6 lg:flex lg:flex-col">

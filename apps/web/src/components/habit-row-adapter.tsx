@@ -12,6 +12,6 @@ const renderLink: LinkRenderer = ({ href, children, className }) => (
 
 export function HabitRowAdapter(props: HabitRowProps) {
   const telegram = useTelegram();
-  const haptic = () => telegram?.HapticFeedback?.impactOccurred("light");
+  const haptic = () => telegram.webApp?.HapticFeedback?.impactOccurred("light");
   return <HabitRow {...props} renderLink={renderLink} onInteraction={haptic} />;
 }

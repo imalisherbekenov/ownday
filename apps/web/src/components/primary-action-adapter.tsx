@@ -14,23 +14,24 @@ export function PrimaryActionAdapter({
   const telegram = useTelegram();
   const label = typeof children === "string" ? children : "Continue";
   useEffect(() => {
-    if (!telegram) return;
+    if (!telegram.webApp) return;
+    const { MainButton } = telegram.webApp;
     const submit = () => {
       if (formId)
         document
           .getElementById(formId)
           ?.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
     };
-    telegram.MainButton.setText(label);
-    telegram.MainButton.onClick(submit);
-    telegram.MainButton.show();
+    MainButton.setText(label);
+    MainButton.onClick(submit);
+    MainButton.show();
     return () => {
-      telegram.MainButton.offClick(submit);
-      telegram.MainButton.hide();
+      MainButton.offClick(submit);
+      MainButton.hide();
     };
-  }, [telegram, label, formId]);
+  }, [telegram.webApp, label, formId]);
   return (
-    <PrimaryAction formId={formId} hidden={Boolean(telegram)}>
+    <PrimaryAction formId={formId} hidden={telegram.webApp !== null}>
       {children}
     </PrimaryAction>
   );
