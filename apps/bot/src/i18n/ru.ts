@@ -55,6 +55,7 @@ export const ru = {
   menuHabits: "Привычки",
   menuStats: "Статистика",
   menuSettings: "Настройки",
+  openApp: "Открыть приложение",
   menuPlaceholder: "Выберите действие или напишите привычку",
   backMenu: "Главное меню",
   undo: "Отменить",

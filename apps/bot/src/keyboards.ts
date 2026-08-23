@@ -7,23 +7,38 @@ export type InlineButton =
 
 export type InlineKeyboard = { inline_keyboard: InlineButton[][] };
 
+type ReplyButton = { text: string } | Extract<InlineButton, { web_app: { url: string } }>;
+
 export type ReplyKeyboard = {
-  keyboard: { text: string }[][];
+  keyboard: ReplyButton[][];
   resize_keyboard: true;
   is_persistent: true;
   input_field_placeholder?: string;
 };
 
-export const mainMenu = (lang: Lang): ReplyKeyboard => ({
-  keyboard: [
-    [{ text: t(lang, "menuToday") }, { text: t(lang, "menuNew") }],
-    [{ text: t(lang, "menuHabits") }, { text: t(lang, "menuStats") }],
-    [{ text: t(lang, "menuSettings") }],
-  ],
-  resize_keyboard: true,
-  is_persistent: true,
-  input_field_placeholder: t(lang, "menuPlaceholder"),
-});
+const secureAppUrl = (appUrl?: string) => {
+  if (!appUrl) return undefined;
+  try {
+    return new URL(appUrl).protocol === "https:" ? appUrl : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+export const mainMenu = (lang: Lang, appUrl = process.env.APP_URL): ReplyKeyboard => {
+  const url = secureAppUrl(appUrl);
+  return {
+    keyboard: [
+      [{ text: t(lang, "menuToday") }, { text: t(lang, "menuNew") }],
+      [{ text: t(lang, "menuHabits") }, { text: t(lang, "menuStats") }],
+      [{ text: t(lang, "menuSettings") }],
+      ...(url ? [[{ text: t(lang, "openApp"), web_app: { url } }]] : []),
+    ],
+    resize_keyboard: true,
+    is_persistent: true,
+    input_field_placeholder: t(lang, "menuPlaceholder"),
+  };
+};
 
 export const todayKeyboard = (
   lang: Lang,

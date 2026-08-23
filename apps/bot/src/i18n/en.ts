@@ -55,6 +55,7 @@ export const en = {
   menuHabits: "Habits",
   menuStats: "Statistics",
   menuSettings: "Settings",
+  openApp: "Open app",
   menuPlaceholder: "Choose an action or type a habit",
   backMenu: "Main menu",
   undo: "Undo",

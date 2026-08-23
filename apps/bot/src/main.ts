@@ -4,7 +4,7 @@ import { PrismaClient } from "@ownday/db";
 import { createServices, prismaRepositories } from "@ownday/services";
 import { createBot, prismaSessionStorage } from "./bot.js";
 import { startReminderWorker } from "./worker.js";
-import { setupBot, type SetupApi } from "./setup.js";
+import { publishBotSetup, type SetupApi } from "./setup.js";
 // One secret, one name: the web app reads TELEGRAM_BOT_TOKEN, and BOT_TOKEN stays
 // readable as a fallback so an existing local .env keeps working.
 const token = process.env.TELEGRAM_BOT_TOKEN ?? process.env.BOT_TOKEN;
@@ -14,7 +14,7 @@ const db = new PrismaClient(),
   services = createServices(repositories),
   deps = { services, users: repositories.users, reminders: repositories.reminders },
   bot = createBot(token, deps, prismaSessionStorage(db));
-await setupBot(bot.api as unknown as SetupApi);
+await publishBotSetup(bot.api as unknown as SetupApi);
 startReminderWorker(bot, deps);
 if (process.env.NODE_ENV === "production") {
   const url = process.env.WEBHOOK_URL;
