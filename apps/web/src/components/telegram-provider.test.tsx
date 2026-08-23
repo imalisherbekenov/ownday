@@ -66,6 +66,18 @@ describe("TelegramProvider", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it("does not render a MainButton overlay for the development mock", async () => {
+    window.history.replaceState({}, "", "/?mockTelegram=1");
+    render(
+      <TelegramProvider>
+        <Probe />
+      </TelegramProvider>,
+    );
+
+    await waitFor(() => expect(screen.getByText("ready")).toBeInTheDocument());
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  });
+
   it("keeps the development mock active after the query param disappears", async () => {
     window.history.replaceState({}, "", "/?mockTelegram=1");
     const firstRender = render(

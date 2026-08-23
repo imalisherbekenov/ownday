@@ -23,7 +23,7 @@ export function PrimaryActionAdapter({
   const telegram = useTelegram();
   const label = typeof children === "string" ? children : "Continue";
   useEffect(() => {
-    if (!telegram.webApp || !formId) return;
+    if (!telegram.webApp || telegram.isMock || !formId) return;
     const { MainButton } = telegram.webApp;
     const target = document.getElementById(formId ?? "");
     const form = target instanceof HTMLFormElement ? target : target?.querySelector("form");
@@ -40,14 +40,9 @@ export function PrimaryActionAdapter({
       MainButton.hide();
       if (nativeButton) nativeButton.hidden = false;
     };
-  }, [telegram.webApp, label, formId]);
+  }, [telegram.webApp, telegram.isMock, label, formId]);
   return (
-    <PrimaryAction
-      formId={formId}
-      href={href}
-      renderLink={renderLink}
-      hidden={telegram.webApp !== null && Boolean(formId)}
-    >
+    <PrimaryAction formId={formId} href={href} renderLink={renderLink} hidden={Boolean(formId)}>
       {children}
     </PrimaryAction>
   );

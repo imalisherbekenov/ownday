@@ -19,6 +19,7 @@ vi.mock("./telegram-provider", () => ({
       MainButton: mainButton,
       BackButton: { show: vi.fn(), hide: vi.fn(), onClick: vi.fn(), offClick: vi.fn() },
     },
+    isMock: false,
     colorScheme: "light",
     error: null,
     retry: vi.fn(),
@@ -41,5 +42,11 @@ describe("PrimaryActionAdapter", () => {
     expect(mainButton.setText).not.toHaveBeenCalled();
     expect(mainButton.onClick).not.toHaveBeenCalled();
     expect(mainButton.show).not.toHaveBeenCalled();
+  });
+
+  it("does not render a duplicate web submit action for forms", () => {
+    render(<PrimaryActionAdapter formId="wrapped-form">Save</PrimaryActionAdapter>);
+    expect(screen.queryByRole("button", { name: "Save" })).not.toBeInTheDocument();
+    expect(mainButton.setText).toHaveBeenCalledWith("Save");
   });
 });

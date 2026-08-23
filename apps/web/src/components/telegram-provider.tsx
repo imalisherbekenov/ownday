@@ -36,6 +36,7 @@ export type TelegramStatus = "checking" | "ready" | "anonymous" | "error";
 export type TelegramContext = {
   status: TelegramStatus;
   webApp: TelegramWebApp | null;
+  isMock: boolean;
   colorScheme: "light" | "dark" | null;
   error: string | null;
   retry: () => void;
@@ -44,6 +45,7 @@ export type TelegramContext = {
 const Context = createContext<TelegramContext>({
   status: "checking",
   webApp: null,
+  isMock: false,
   colorScheme: null,
   error: null,
   retry: () => undefined,
@@ -86,6 +88,7 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<Omit<TelegramContext, "retry">>({
     status: "checking",
     webApp: null,
+    isMock: false,
     colorScheme: null,
     error: null,
   });
@@ -96,11 +99,7 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
     const initialise = () => {
       const mockRequested = new URLSearchParams(window.location.search).get("mockTelegram") === "1";
       const realTelegramActive = Boolean(window.Telegram?.WebApp?.initData);
-      if (
-        process.env.NODE_ENV !== "production" &&
-        mockRequested &&
-        !realTelegramActive
-      ) {
+      if (process.env.NODE_ENV !== "production" && mockRequested && !realTelegramActive) {
         window.sessionStorage.setItem(MOCK_TELEGRAM_SESSION_KEY, "1");
       }
       const mockEnabled =
@@ -115,7 +114,13 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
       const candidate = window.Telegram?.WebApp;
       const webApp = candidate?.initData ? candidate : null;
       if (!webApp) {
-        setState({ status: "anonymous", webApp: null, colorScheme: null, error: null });
+        setState({
+          status: "anonymous",
+          webApp: null,
+          isMock: false,
+          colorScheme: null,
+          error: null,
+        });
         return;
       }
 
@@ -124,11 +129,11 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
       webApp.expand();
 
       if (mockEnabled) {
-        setState({ status: "ready", webApp, colorScheme, error: null });
+        setState({ status: "ready", webApp, isMock: true, colorScheme, error: null });
         return;
       }
 
-      setState({ status: "checking", webApp, colorScheme, error: null });
+      setState({ status: "checking", webApp, isMock: false, colorScheme, error: null });
       void fetch("/api/auth/telegram", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -143,7 +148,7 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
             throw new Error(body?.error || "Не удалось войти через Telegram");
           }
           if (!cancelled) {
-            setState({ status: "ready", webApp, colorScheme, error: null });
+            setState({ status: "ready", webApp, isMock: false, colorScheme, error: null });
             router.refresh();
           }
         })
@@ -152,6 +157,7 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
             setState({
               status: "error",
               webApp,
+              isMock: false,
               colorScheme,
               error: error instanceof Error ? error.message : "Не удалось войти через Telegram",
             });

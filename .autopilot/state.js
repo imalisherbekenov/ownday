@@ -1,7 +1,7 @@
 window.STATE =
 {
   "slug": "telegram-mini-app",
-  "dir": "2026-08-23-telegram-mini-app--wip",
+  "dir": "2026-08-23-telegram-mini-app",
   "title": "Живой Mini App внутри Telegram",
   "mode": "semi",
   "depth": "normal",
@@ -11,8 +11,8 @@ window.STATE =
   "memoryFile": "CLAUDE.md",
   "skillDir": "C:/Users/Administrator/.claude/skills/autopilot",
   "startedAt": "2026-08-23T13:48:13+05:00",
-  "updatedAt": "2026-08-23T18:23:29+05:00",
-  "finishedAt": null,
+  "updatedAt": "2026-08-23T19:17:46+05:00",
+  "finishedAt": "2026-08-23T19:17:46+05:00",
   "stages": [
     {
       "id": "preflight",
@@ -47,25 +47,30 @@ window.STATE =
     },
     {
       "id": "build",
-      "status": "active",
+      "status": "done",
       "startedAt": "2026-08-23T14:09:28+05:00",
-      "note": "3 из 4 тасков готовы"
+      "note": "4 из 4 тасков готовы",
+      "finishedAt": "2026-08-23T19:17:46+05:00"
     },
     {
       "id": "review",
-      "status": "active",
+      "status": "done",
       "startedAt": "2026-08-23T14:32:35+05:00",
-      "note": "проверено 3 из 4"
+      "note": "проверено 4 из 4",
+      "finishedAt": "2026-08-23T19:17:46+05:00"
     },
     {
       "id": "final",
-      "status": "pending"
+      "status": "done",
+      "startedAt": "2026-08-23T19:17:46+05:00",
+      "finishedAt": "2026-08-23T19:17:46+05:00",
+      "note": "слепая приёмка нашла регрессию, закрыта"
     }
   ],
   "requirements": {
-    "total": 15,
-    "done": 19,
-    "inTicket": 9,
+    "total": 16,
+    "done": 15,
+    "inTicket": 0,
     "inSpec": 0,
     "placeholder": 0,
     "deferred": 1,
@@ -235,21 +240,26 @@ window.STATE =
         "apps/web/src/components/",
         "apps/web/src/app/"
       ],
-      "status": "repair",
+      "status": "done",
       "retries": 0,
-      "repairs": 3,
+      "repairs": 6,
       "handoffs": 0,
       "startedAt": "2026-08-23T16:04:44+05:00",
       "repairFindings": [
         "заглушка не переживала полную перезагрузку — чек-лист приёмки был непроходим",
         "главная кнопка обычного веба на / изменилась: py-3 вместо py-4, потерян text-lg, button стал ссылкой — R10i",
         "G01: пользователь решил починить мёртвую кнопку Add a habit"
-      ]
+      ],
+      "finishedAt": "2026-08-23T19:17:46+05:00",
+      "tests": {
+        "passed": 57,
+        "failed": 0
+      }
     }
   ],
   "singlePass": null,
   "tests": {
-    "passed": 74,
+    "passed": 57,
     "failed": 0
   },
   "debt": {
@@ -257,7 +267,9 @@ window.STATE =
     "assumptions": [],
     "emptyEnv": []
   },
-  "additions": [],
+  "additions": [
+    "Поддельный Telegram ?mockTelegram=1 — ради R01: без публичного адреса иначе нечем проверить оболочку и навигацию"
+  ],
   "coverage": {
     "findings": 3,
     "fixed": 3,
@@ -315,5 +327,15 @@ window.STATE =
     "manifestSpec": "a3dd68d0b12b89e67",
     "craft": "a31a201defad50a0c"
   },
-  "blind": null
+  "blind": {
+    "verdict": "расхождение",
+    "drift": [
+      "R10i — регрессия прогона: на /habits/new, /habits/[id]/edit и /settings в обычном браузере две одинаковые primary-кнопки, нижняя не работает. formId указывает на <div>, а атрибут form обязан ссылаться на <form>",
+      "Приёмка моком неполна: на четырёх экранах с формами под ?mockTelegram=1 нет ни одной кликабельной кнопки отправки — адаптер прячет родную, а MainButton заглушки невидима"
+    ],
+    "внеБрифа": [
+      "/stats падает RangeError: No schedule active — scheduleAt зовётся на все 30 дней окна, привычка создана сегодня. Код старый, стал достижим после починки кнопки",
+      "«Mark as done today» отдаёт 500 при повторной отметке: upsert по clientId, а в схеме есть ещё @@unique([habitId, localDate])"
+    ]
+  }
 }
