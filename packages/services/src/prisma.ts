@@ -141,7 +141,7 @@ export class PrismaEntryRepository implements EntryRepository {
   async upsert(input: Parameters<EntryRepository["upsert"]>[0]) {
     return E(
       await this.p.entry.upsert({
-        where: { clientId: input.clientId },
+        where: { habitId_localDate: { habitId: input.habitId, localDate: d(input.localDate) } },
         create: { ...input, localDate: d(input.localDate) },
         update: {},
       }),

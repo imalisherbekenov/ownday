@@ -101,6 +101,9 @@ export default async function HabitDetail({ params }: { params: Promise<{ id: st
       <form id="detail-action" action={markHabitAction.bind(null, userId, today)}>
         <input type="hidden" name="habitId" value={id} />
         <input type="hidden" name="intent" value="done" />
+        <button className="primary" type="submit">
+          Mark as done today
+        </button>
       </form>
       <PrimaryActionAdapter formId="detail-action">Mark as done today</PrimaryActionAdapter>
     </main>

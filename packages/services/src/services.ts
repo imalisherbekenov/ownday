@@ -28,6 +28,12 @@ export type ServiceDependencies = {
 const shiftDays = (date: LocalDate, days: number): LocalDate =>
   new Date(Date.parse(`${date}T00:00:00Z`) + days * 86_400_000).toISOString().slice(0, 10);
 
+const habitStartedOn = (versions: readonly { validFrom: LocalDate }[]): LocalDate =>
+  versions.reduce(
+    (earliest, version) => (version.validFrom < earliest ? version.validFrom : earliest),
+    versions[0]!.validFrom,
+  );
+
 export function createServices(dependencies: ServiceDependencies) {
   const clock = dependencies.clock ?? (() => new Date());
 
@@ -85,19 +91,20 @@ export function createServices(dependencies: ServiceDependencies) {
       for (const habit of habits) {
         if (!isDue(scheduleAt(habit.scheduleVersions, localDate), localDate)) continue;
         const entries = await dependencies.entries.listForHabit(habit.id, localDate);
+        const startedOn = habitStartedOn(habit.scheduleVersions);
         const entry = entries.find((candidate) => candidate.localDate === localDate) ?? null;
         const streak = computeStreak({
           versions: habit.scheduleVersions,
           entries,
           today: localDate,
-          startedOn: localDateFor(habit.createdAt, user.timezone, user.dayStartHour),
+          startedOn,
         });
         result.push({
           habit,
           localDate,
           entry,
           entries,
-          startedOn: localDateFor(habit.createdAt, user.timezone, user.dayStartHour),
+          startedOn,
           streak,
         });
       }
@@ -134,7 +141,7 @@ export function createServices(dependencies: ServiceDependencies) {
       const user = await requireUser(habit.userId);
       const today = localDateFor(now, user.timezone, user.dayStartHour);
       const entries = await dependencies.entries.listForHabit(habitId, today);
-      const startedOn = localDateFor(habit.createdAt, user.timezone, user.dayStartHour);
+      const startedOn = habitStartedOn(habit.scheduleVersions);
       const streak = computeStreak({ versions: habit.scheduleVersions, entries, today, startedOn });
       const rate = completionRate({ versions: habit.scheduleVersions, entries, today, startedOn });
       const stats = {
@@ -159,7 +166,12 @@ export function createServices(dependencies: ServiceDependencies) {
       let due = 0;
 
       for (const habit of habits) {
-        for (let date = from; date <= through; date = shiftDays(date, 1)) {
+        const startedOn = habitStartedOn(habit.scheduleVersions);
+        for (
+          let date = startedOn > from ? startedOn : from;
+          date <= through;
+          date = shiftDays(date, 1)
+        ) {
           if (!isDue(scheduleAt(habit.scheduleVersions, date), date)) continue;
           const status = entries.find(
             (entry) => entry.habitId === habit.id && entry.localDate === date,

@@ -54,6 +54,88 @@ describe("application services", () => {
     expect(b).toEqual(a);
     expect(s.entries.entries.size).toBe(1);
   });
+  it("is idempotent by habit and local date", async () => {
+    const s = setup(),
+      { user, habit } = await base(s),
+      input = {
+        userId: user.id,
+        habitId: habit.id,
+        localDate: "2024-01-02",
+        status: "done",
+        source: "tg",
+      } as const;
+    const first = await s.services.markEntry({
+      ...input,
+      clientId: "11111111-1111-4111-8111-111111111112",
+    });
+    const second = await s.services.markEntry({
+      ...input,
+      source: "web",
+      clientId: "11111111-1111-4111-8111-111111111113",
+    });
+    expect(second.id).toBe(first.id);
+    expect(s.entries.entries.size).toBe(1);
+  });
+  it("excludes days before a habit existed from the user summary", async () => {
+    const now = new Date("2024-01-30T12:00:00Z"),
+      s = setup(() => now),
+      { user, habit } = await base(s);
+    habit.createdAt = new Date("2024-01-30T04:00:00Z");
+    habit.scheduleVersions[0]!.validFrom = "2024-01-30";
+    s.habits.habits.set(habit.id, habit);
+    await s.services.markEntry({
+      userId: user.id,
+      habitId: habit.id,
+      localDate: "2024-01-30",
+      status: "done",
+      source: "web",
+      clientId: "11111111-1111-4111-8111-111111111114",
+    });
+    await expect(s.services.getUserSummary(user.id, { days: 30, now })).resolves.toMatchObject({
+      done: 1,
+      due: 1,
+      completionRate: 1,
+    });
+  });
+  it("starts summary obligations at the earliest schedule validFrom", async () => {
+    const now = new Date("2024-01-30T12:00:00Z"),
+      s = setup(() => now),
+      { user, habit } = await base(s);
+    habit.createdAt = new Date("2024-01-01T04:00:00Z");
+    habit.scheduleVersions[0]!.validFrom = "2024-01-29";
+    s.habits.habits.set(habit.id, habit);
+    await s.services.markEntry({
+      userId: user.id,
+      habitId: habit.id,
+      localDate: "2024-01-30",
+      status: "done",
+      source: "web",
+      clientId: "11111111-1111-4111-8111-111111111115",
+    });
+    await s.services.markEntry({
+      userId: user.id,
+      habitId: habit.id,
+      localDate: "2024-01-29",
+      status: "done",
+      source: "web",
+      clientId: "11111111-1111-4111-8111-111111111116",
+    });
+    await expect(s.services.listHabitsForToday(user.id, now)).resolves.toMatchObject([
+      { startedOn: "2024-01-29", streak: { current: 2, best: 2 } },
+    ]);
+    await expect(s.services.getHabitStats(habit.id, now)).resolves.toMatchObject({
+      currentStreak: 2,
+      bestStreak: 2,
+      completionRate: 1,
+    });
+    await expect(s.services.getUserSummary(user.id, { days: 30, now })).resolves.toEqual({
+      from: "2024-01-01",
+      through: "2024-01-30",
+      done: 2,
+      due: 2,
+      completionRate: 1,
+    });
+  });
   it("computes a genuine non-system local date", async () => {
     const s = setup(),
       { user } = await base(s, "Pacific/Auckland"),
@@ -164,6 +246,7 @@ describe("application services", () => {
     const s = setup(() => createdAt);
     const { user, habit } = await base(s, "Asia/Tashkent");
     habit.createdAt = createdAt;
+    habit.scheduleVersions[0]!.validFrom = "2024-01-02";
     s.habits.habits.set(habit.id, habit);
 
     const updated = await s.services.updateHabit(habit.id, user.id, {
