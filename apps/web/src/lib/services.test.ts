@@ -2,6 +2,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("./session", () => ({ readSession: vi.fn(async () => null) }));
 
+// redirect() в Next бросает собственное исключение и наружу не возвращается.
+// Здесь повторяем это поведение и заодно ловим адрес: тест обязан краснеть не только
+// когда аноним получает доступ, но и когда его уводят не туда.
+vi.mock("next/navigation", () => ({
+  redirect: vi.fn((path: string) => {
+    throw new Error(`NEXT_REDIRECT:${path}`);
+  }),
+}));
+
 describe("getCurrentUserId", () => {
   beforeEach(() => {
     vi.resetModules();
@@ -18,7 +27,7 @@ describe("getCurrentUserId", () => {
       vi.stubEnv("DATABASE_URL", databaseUrl);
 
       const { getCurrentUserId } = await import("./services");
-      await expect(getCurrentUserId()).rejects.toThrow("AUTH_REQUIRED");
+      await expect(getCurrentUserId()).rejects.toThrow("NEXT_REDIRECT:/auth/required");
     },
   );
 });

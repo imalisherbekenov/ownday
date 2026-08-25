@@ -1,4 +1,5 @@
 import "server-only";
+import { redirect } from "next/navigation";
 import { localDateFor } from "@ownday/core";
 import {
   createServices,
@@ -98,6 +99,10 @@ export async function getCurrentUserId() {
   const { readSession } = await import("./session");
   const sessionUserId = await readSession();
   if (sessionUserId) return sessionUserId;
-  if (process.env.NODE_ENV === "production") throw new Error("AUTH_REQUIRED");
+  // Отказ в доступе — не сбой, и показывать его как сбой нельзя. В production Next
+  // вырезает текст ошибки из клиентской границы: до error.tsx доезжает один digest,
+  // отличить «не пущен» от «сломалось» там нечем. Человек видел бы «Something went
+  // wrong» и кнопку «Try again», которая не может помочь никогда.
+  if (process.env.NODE_ENV === "production") redirect("/auth/required");
   return ensureDemoData();
 }
