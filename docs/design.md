@@ -7,81 +7,81 @@ version: 1
 
 color:
   light:
-    ground:      '#F3F6F1'   # фон приложения, off-white со сдвигом в зелень
-    surface:     '#FFFFFF'   # карточка-контейнер списка, модалки
-    surface-2:   '#E8EDE5'   # второй слой: степперы, пустые ячейки хитмапа, трек прогресса
-    ink:         '#101A17'   # основной текст, нейтральная primary-кнопка
-    ink-2:       '#3F514A'   # вторичный текст
-    ink-3:       '#6E8078'   # подписи, расписание, легенды, неактивная пилюля
-    line:        '#D4DDD5'   # границы, обводка невыбранного чекбокса
-    line-soft:   '#E3EAE2'   # разделители строк внутри карточки
-    done:        '#1B8A62'   # АКЦЕНТ 1 — только выполнение
-    done-soft:   '#D5EDE2'
-    done-ink:    '#0E5E42'
-    streak:      '#B9700F'   # АКЦЕНТ 2 — только серия
-    streak-soft: '#FAE9CE'
-    streak-ink:  '#8A5309'
-    miss:        '#AF4034'   # провал, применять скупо
-    miss-soft:   '#F6DEDA'
+    ground:      '#EBDDC5'   # тёплый кремовый фон приложения
+    surface:     '#F9F4ED'   # карточка-контейнер списка, модалки
+    surface-2:   '#EEE7DB'   # второй слой: степперы, пустые ячейки хитмапа, трек прогресса
+    ink:         '#201E1D'   # основной текст, нейтральная primary-кнопка
+    ink-2:       '#645C50'   # вторичный текст
+    ink-3:       '#82796A'   # подписи, расписание, легенды, неактивная пилюля
+    line:        '#DCD3C4'   # границы, обводка невыбранного чекбокса
+    line-soft:   '#EEE7DB'   # разделители строк внутри карточки
+    done:        '#728157'   # АКЦЕНТ 1 — только выполнение (шалфей)
+    done-soft:   '#E1EECC'
+    done-ink:    '#3D472B'
+    streak:      '#C67139'   # АКЦЕНТ 2 — только серия (терракота)
+    streak-soft: '#FFE1D0'
+    streak-ink:  '#8C491A'
+    miss:        '#A63F2C'   # провал, применять скупо
+    miss-soft:   '#F2D8CF'
     # Палитра цвета привычки — пользовательские данные, НЕ акценты.
     # Красят только плашку иконки и линию привычки на сравнительных графиках.
-    hue-moss:    '#1B8A62'
+    hue-moss:    '#728157'
     hue-ocean:   '#1C6C8C'
     hue-indigo:  '#3B4E9B'
     hue-plum:    '#7A3E86'
     hue-clay:    '#A8452F'
-    hue-amber:   '#B9700F'
+    hue-amber:   '#C67139'
     hue-olive:   '#5F7327'
     hue-slate:   '#4A5A63'
   dark:
-    ground:      '#0C1513'
-    surface:     '#131E1B'
-    surface-2:   '#1B2823'
-    ink:         '#E9F0EB'
-    ink-2:       '#A7B7B0'
-    ink-3:       '#7A8B84'
-    line:        '#26352F'
-    line-soft:   '#1D2A25'
-    done:        '#38C68D'
-    done-soft:   '#13342A'
-    done-ink:    '#7BDDB4'
-    streak:      '#E8A33D'
-    streak-soft: '#35270F'
-    streak-ink:  '#F3C271'
-    miss:        '#E47365'
-    miss-soft:   '#3A1F1C'
-    hue-moss:    '#38C68D'
-    hue-ocean:   '#4FB6D8'
-    hue-indigo:  '#7C8FE0'
-    hue-plum:    '#C084CE'
-    hue-clay:    '#E48570'
-    hue-amber:   '#E8A33D'
-    hue-olive:   '#A6C24F'
-    hue-slate:   '#93A6B0'
+    ground:      '#201E1D'
+    surface:     '#2E2B25'
+    surface-2:   '#474238'
+    ink:         '#F9F4ED'
+    ink-2:       '#A19786'
+    ink-3:       '#82796A'
+    line:        '#474238'
+    line-soft:   '#474238'
+    done:        '#AEBF92'
+    done-soft:   '#3D472B'
+    done-ink:    '#AEBF92'
+    streak:      '#F6A06B'
+    streak-soft: '#643312'
+    streak-ink:  '#F6A06B'
+    miss:        '#E47D68'
+    miss-soft:   '#552B24'
+    hue-moss:    '#AEBF92'
+    hue-ocean:   '#69A9B5'
+    hue-indigo:  '#8995C9'
+    hue-plum:    '#B78ABD'
+    hue-clay:    '#D47D67'
+    hue-amber:   '#F6A06B'
+    hue-olive:   '#A8B174'
+    hue-slate:   '#929B9C'
 
 typography:
   families:
-    ui:   'Hanken Grotesk'   # весь интерфейс и заголовки
-    mono: 'JetBrains Mono'   # все числа, tabular-nums обязательно
+    ui:      'Nunito Sans'   # основной интерфейс, 400/600/700
+    display: 'Nunito'        # заголовки, 800/900
   scale:
-    display:  { size: 32, line: 40, weight: 800, tracking: '-0.03em', family: ui   }
-    h2:       { size: 24, line: 32, weight: 700, tracking: '-0.02em', family: ui   }
-    h3:       { size: 19, line: 26, weight: 700, tracking: '-0.01em', family: ui   }
-    body:     { size: 16, line: 24, weight: 500, tracking: '0',       family: ui   }
-    body-alt: { size: 16, line: 24, weight: 400, tracking: '0',       family: ui   }
-    caption:  { size: 13, line: 18, weight: 400, tracking: '0.01em',  family: ui   }
-    label:    { size: 12, line: 16, weight: 700, tracking: '0.14em',  family: ui   }  # uppercase
-    num-lg:   { size: 20, line: 24, weight: 600, tracking: '0',       family: mono }
-    num-sm:   { size: 14, line: 18, weight: 500, tracking: '0',       family: mono }
+    display:  { size: 32, line: 34, weight: 900, tracking: '-0.02em', family: display }
+    h2:       { size: 24, line: 26, weight: 900, tracking: '-0.01em', family: display }
+    h3:       { size: 22, line: 24, weight: 900, tracking: '-0.01em', family: display }
+    body:     { size: 16, line: 24, weight: 600, tracking: '0',       family: ui      }
+    body-alt: { size: 17, line: 26, weight: 400, tracking: '0',       family: ui      }
+    caption:  { size: 13, line: 18, weight: 400, tracking: '0',       family: ui      }
+    label:    { size: 12, line: 16, weight: 700, tracking: '0.14em',  family: ui      }  # uppercase
+    num-lg:   { size: 20, line: 24, weight: 600, tracking: '0',       family: ui      }
+    num-sm:   { size: 14, line: 18, weight: 600, tracking: '0',       family: ui      }
 
-space: [4, 8, 12, 16, 24, 32, 48, 64]   # база 4px. Промежуточных значений НЕТ
+space: [4, 8, 12, 16, 20, 24, 32, 48]   # рабочая шкала отступов макетов
 
 radius:
-  chip:   6
-  check:  8
-  input:  10
-  card:   14
-  sheet:  20
+  chip:   12
+  check:  12
+  input:  20
+  card:   28
+  sheet:  28
 
 layout:
   page-margin:  20
@@ -89,16 +89,18 @@ layout:
   section-gap:  24
   card-padding: 16
   tap-target:   44
-  content-max:  640
+  content-max:  900
   heat-cell:    { size: 11, gap: 3 }
 
 elevation:
-  card:  '0 1px 2px rgba(16,26,23,.05), 0 4px 12px rgba(16,26,23,.05)'
-  sheet: '0 8px 32px rgba(16,26,23,.12)'
+  card:  '0 3px 10px rgba(46,43,37,.12)'
+  sheet: '0 12px 32px rgba(46,43,37,.22)'
   # Градиенты запрещены. Вся глубина — тон + мягкая тень.
 ---
 
 ## Смысл цвета
+
+Два акцента: шалфей — выполнение, терракота — серия. Цвет привычки красит только плашку иконки.
 
 Акцентов ровно два, и каждый закреплён за одним смыслом. Элемент не получает свой цвет
 только потому, что он «важный».
@@ -106,16 +108,16 @@ elevation:
 - **`done`** — выполнение и ничего больше: залитый чекбокс, прогресс-бар, положительная динамика.
 - **`streak`** — серия и ничего больше: число дней подряд, «горячий» индикатор.
 - **`ink`** — нейтральное основное действие (кнопка «Добавить привычку», «Сохранить»).
-  Это не третий акцент: чёрная кнопка нейтральна и не конкурирует за смысл с зелёным.
+  Это не третий акцент: чёрная кнопка нейтральна и не конкурирует за смысл с шалфеем.
 
-### Правило шафрана
+### Правило терракоты
 
 В **списке** пилюля серии нейтральная — `ink-3` на `surface-2`.
 `streak` включается только при серии **≥ 7 дней** или если это личный рекорд.
 На **детальном экране привычки**, в **экране достижения** и в **виджете** число серии
 всегда в `streak`.
 
-Иначе на экране из шести привычек горят шесть оранжевых пилюль, и серия перестаёт
+Иначе на экране из шести привычек горят шесть терракотовых пилюль, и серия перестаёт
 читаться как достижение.
 
 ### Серия = 0
@@ -143,14 +145,14 @@ elevation:
 
 | Токен | Light | Dark |
 |---|---|---|
-| `hue-moss` | `#1B8A62` | `#38C68D` |
-| `hue-ocean` | `#1C6C8C` | `#4FB6D8` |
-| `hue-indigo` | `#3B4E9B` | `#7C8FE0` |
-| `hue-plum` | `#7A3E86` | `#C084CE` |
-| `hue-clay` | `#A8452F` | `#E48570` |
-| `hue-amber` | `#B9700F` | `#E8A33D` |
-| `hue-olive` | `#5F7327` | `#A6C24F` |
-| `hue-slate` | `#4A5A63` | `#93A6B0` |
+| `hue-moss` | `#728157` | `#AEBF92` |
+| `hue-ocean` | `#1C6C8C` | `#69A9B5` |
+| `hue-indigo` | `#3B4E9B` | `#8995C9` |
+| `hue-plum` | `#7A3E86` | `#B78ABD` |
+| `hue-clay` | `#A8452F` | `#D47D67` |
+| `hue-amber` | `#C67139` | `#F6A06B` |
+| `hue-olive` | `#5F7327` | `#A8B174` |
+| `hue-slate` | `#4A5A63` | `#929B9C` |
 
 ## Три состояния дня
 
@@ -165,11 +167,12 @@ elevation:
 
 ## Типографика
 
-**Hanken Grotesk** на весь интерфейс. Заголовки с трекингом −3% — «собранный» вид.
+**Nunito Sans** 400/600/700 на интерфейс, **Nunito** 800/900 на заголовки.
+Заголовки с трекингом −2% — «собранный» вид.
 Сериф не используем: длинной прозы в приложении почти нет (онбординг — три экрана),
 а в Telegram Mini App каждая гарнитура — блокирующий запрос поверх медленного вебвью.
 
-**JetBrains Mono** на все числа: счётчики, серии, проценты, даты.
+Числа остаются в **Nunito Sans**.
 `font-variant-numeric: tabular-nums` обязателен везде, где цифры инкрементятся или
 стоят в колонку — иначе строка «дёргается» при изменении значения.
 
@@ -197,7 +200,7 @@ elevation:
 
 ### Пилюля серии
 
-`radius: 99`, `num-sm`, иконка пламени + число. Цвет по правилу шафрана выше.
+`radius: 99`, `num-sm`, иконка пламени + число. Цвет по правилу терракоты выше.
 
 ### Week strip
 

@@ -1,17 +1,17 @@
 import type { Metadata, Viewport } from "next";
-import { Hanken_Grotesk, JetBrains_Mono } from "next/font/google";
+import { Nunito, Nunito_Sans } from "next/font/google";
 import "./globals.css";
 import { TelegramProvider } from "@/components/telegram-provider";
 import { AppShell } from "@/components/app-shell";
 import { cookies } from "next/headers";
-const hanken = Hanken_Grotesk({
+const nunitoSans = Nunito_Sans({
   subsets: ["latin", "cyrillic-ext"],
-  variable: "--font-hanken",
+  variable: "--font-sans",
   display: "swap",
 });
-const jetbrains = JetBrains_Mono({
-  subsets: ["latin", "cyrillic"],
-  variable: "--font-jetbrains",
+const nunito = Nunito({
+  subsets: ["latin", "cyrillic-ext"],
+  variable: "--font-display",
   display: "swap",
 });
 export const metadata: Metadata = {
@@ -26,7 +26,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     <html
       lang="ru"
       data-theme={theme === "light" || theme === "dark" ? theme : undefined}
-      className={`${hanken.variable} ${jetbrains.variable}`}
+      className={`${nunitoSans.variable} ${nunito.variable}`}
       suppressHydrationWarning
     >
       <head>

@@ -18,6 +18,13 @@
     outline: 2px solid var(--color-done);
     outline-offset: 2px;
   }
+  /* docs/design.md отдаёт display/h2/h3 семейству display. Без этого правила
+     Nunito качается каждым посетителем и не применяется ни к чему. */
+  h1,
+  h2,
+  h3 {
+    @apply font-display;
+  }
 }
 @layer components {
   .page {
@@ -31,7 +38,8 @@
     @apply text-xs font-bold uppercase tracking-[0.14em] text-ink-3;
   }
   .number {
-    @apply font-mono tabular-nums;
+    @apply tabular-nums;
+    font-variant-numeric: tabular-nums;
   }
   .control {
     @apply min-h-11 w-full rounded-input border border-line bg-surface px-3 text-ink;

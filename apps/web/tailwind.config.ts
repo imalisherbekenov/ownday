@@ -43,7 +43,7 @@ export default {
       },
       boxShadow: { card: variable("elevation-card") },
       maxWidth: { content: variable("layout-content-max") },
-      fontFamily: { sans: ["var(--font-hanken)"], mono: ["var(--font-jetbrains)"] },
+      fontFamily: { sans: ["var(--font-sans)"], display: ["var(--font-display)"] },
     },
   },
   plugins: [],
