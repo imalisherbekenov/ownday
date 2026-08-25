@@ -1,7 +1,9 @@
 import {
+  completionByWeekday,
   completionRate,
   computeStreak,
   isDue,
+  isoWeekday,
   localDateFor,
   nextFireAt,
   scheduleAt,
@@ -144,6 +146,12 @@ export function createServices(dependencies: ServiceDependencies) {
       const startedOn = habitStartedOn(habit.scheduleVersions);
       const streak = computeStreak({ versions: habit.scheduleVersions, entries, today, startedOn });
       const rate = completionRate({ versions: habit.scheduleVersions, entries, today, startedOn });
+      const byWeekday = completionByWeekday({
+        versions: habit.scheduleVersions,
+        entries,
+        today,
+        startedOn,
+      });
       const stats = {
         habitId,
         currentStreak: streak.current,
@@ -153,7 +161,7 @@ export function createServices(dependencies: ServiceDependencies) {
         unit: streak.unit,
       };
       await dependencies.habits.writeStats(stats);
-      return stats;
+      return { ...stats, byWeekday };
     },
 
     async getUserSummary(userId: string, period: { days: number; now?: Date }) {
@@ -164,6 +172,7 @@ export function createServices(dependencies: ServiceDependencies) {
       const entries = await dependencies.entries.listForUser(userId, from, through);
       let done = 0;
       let due = 0;
+      const weekdayBuckets = Array.from({ length: 7 }, () => ({ done: 0, due: 0 }));
 
       for (const habit of habits) {
         const startedOn = habitStartedOn(habit.scheduleVersions);
@@ -179,9 +188,15 @@ export function createServices(dependencies: ServiceDependencies) {
           if (status === "skip") continue;
           due += 1;
           if (status === "done") done += 1;
+          const bucket = weekdayBuckets[isoWeekday(date) - 1]!;
+          bucket.due += 1;
+          if (status === "done") bucket.done += 1;
         }
       }
-      return { from, through, done, due, completionRate: due ? done / due : null };
+      const byWeekday = weekdayBuckets.map((bucket) =>
+        bucket.due ? bucket.done / bucket.due : null,
+      );
+      return { from, through, done, due, completionRate: due ? done / due : null, byWeekday };
     },
 
     async ensureUserFromTelegram(

@@ -22,7 +22,7 @@ const addDays = (date: LocalDate, count: number): LocalDate =>
   new Date(parseDate(date).valueOf() + count * DAY).toISOString().slice(0, 10);
 const diffDays = (left: LocalDate, right: LocalDate): number =>
   Math.round((parseDate(left).valueOf() - parseDate(right).valueOf()) / DAY);
-const isoWeekday = (date: LocalDate): number => parseDate(date).getUTCDay() || 7;
+export const isoWeekday = (date: LocalDate): number => parseDate(date).getUTCDay() || 7;
 
 function zonedParts(date: Date, timeZone: string): Record<string, number> {
   const result: Record<string, number> = {};
@@ -172,6 +172,20 @@ export function completionRate(params: StreakParams): number | null {
     if (status === "done") done++;
   }
   return due === 0 ? null : done / due;
+}
+
+export function completionByWeekday(params: StreakParams): Array<number | null> {
+  const byDate = entryMap(params.entries);
+  const buckets = Array.from({ length: 7 }, () => ({ done: 0, due: 0 }));
+  for (let date = params.startedOn; date <= params.today; date = addDays(date, 1)) {
+    if (!isDue(scheduleAt(params.versions, date), date)) continue;
+    const status = byDate.get(date)?.status;
+    if (status === "skip") continue;
+    const bucket = buckets[isoWeekday(date) - 1]!;
+    bucket.due++;
+    if (status === "done") bucket.done++;
+  }
+  return buckets.map(({ done, due }) => (due === 0 ? null : done / due));
 }
 
 const maskIncludes = (mask: number[] | number, day: number): boolean =>

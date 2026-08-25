@@ -77,7 +77,7 @@ export default async function StatsPage({
             <div className="h-2 flex-1 rounded-full bg-surface-2">
               <div
                 className="h-full rounded-full bg-done"
-                style={{ width: `${36 + ((i * 13) % 55)}%` }}
+                style={{ width: `${(summary.byWeekday[i] ?? 0) * 100}%` }}
               />
             </div>
           </div>

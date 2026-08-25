@@ -4,7 +4,8 @@ import { getCurrentUserId, repositories, services } from "@/lib/services";
 import { Heatmap, WeekStrip } from "@ownday/ui";
 import { PrimaryActionAdapter } from "@/components/primary-action-adapter";
 import { markHabitAction } from "@/app/actions";
-import { heatPoints, weekDays } from "@/lib/view-data";
+import { heatPoints, scheduleDescription, weekDays } from "@/lib/view-data";
+import { scheduleAt } from "@ownday/core";
 export const dynamic = "force-dynamic";
 export default async function HabitDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params,
@@ -43,7 +44,9 @@ export default async function HabitDetail({ params }: { params: Promise<{ id: st
         </div>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{habit.title}</h1>
-          <p className="text-sm text-ink-3">Daily practice</p>
+          <p className="text-sm text-ink-3">
+            {scheduleDescription(scheduleAt(habit.scheduleVersions, today))}
+          </p>
         </div>
       </section>
       <section className="my-6 flex items-end justify-between border-b border-line-soft pb-4">
@@ -85,7 +88,7 @@ export default async function HabitDetail({ params }: { params: Promise<{ id: st
               <div className="h-1.5 flex-1 rounded-full bg-surface-2">
                 <div
                   className="h-full rounded-full bg-done"
-                  style={{ width: `${Math.max(18, 90 - index * 9)}%` }}
+                  style={{ width: `${(stats.byWeekday[index] ?? 0) * 100}%` }}
                 />
               </div>
             </div>

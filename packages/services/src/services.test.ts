@@ -127,6 +127,7 @@ describe("application services", () => {
       currentStreak: 2,
       bestStreak: 2,
       completionRate: 1,
+      byWeekday: [1, 1, null, null, null, null, null],
     });
     await expect(s.services.getUserSummary(user.id, { days: 30, now })).resolves.toEqual({
       from: "2024-01-01",
@@ -134,6 +135,7 @@ describe("application services", () => {
       done: 2,
       due: 2,
       completionRate: 1,
+      byWeekday: [1, 1, null, null, null, null, null],
     });
   });
   it("computes a genuine non-system local date", async () => {

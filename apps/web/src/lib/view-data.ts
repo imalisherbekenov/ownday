@@ -1,4 +1,16 @@
 import type { HabitEntry } from "@ownday/services";
+import type { Schedule } from "@ownday/core";
+
+const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+export function scheduleDescription(schedule: Schedule): string {
+  if (schedule.kind === "daily") return "Daily";
+  if (schedule.kind === "days_of_week")
+    return `Specific weekdays: ${schedule.days.map((day) => weekdays[day - 1]!).join(", ")}`;
+  if (schedule.kind === "times_per_week") return `${schedule.target} times per week`;
+  if (schedule.kind === "times_per_month") return `${schedule.target} times per month`;
+  return `Every ${schedule.every} days`;
+}
 export function shiftDate(date: string, days: number) {
   return new Date(Date.parse(`${date}T00:00:00Z`) + days * 86400000).toISOString().slice(0, 10);
 }

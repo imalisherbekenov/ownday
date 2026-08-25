@@ -8,20 +8,35 @@ export const dynamic = "force-dynamic";
 export default async function TodayPage() {
   const userId = await getCurrentUserId();
   const now = new Date();
-  const items = await services.listHabitsForToday(userId, now);
+  const [items, user] = await Promise.all([
+    services.listHabitsForToday(userId, now),
+    services.getUser(userId),
+  ]);
+  if (!user) throw new Error("USER_NOT_FOUND");
   const today = items[0]?.localDate ?? (await services.localDateForUser(userId, now));
   const date = new Intl.DateTimeFormat("en", {
     weekday: "long",
     month: "long",
     day: "numeric",
+    timeZone: user.timezone,
   }).format(now);
+  const hour = Number(
+    new Intl.DateTimeFormat("en", {
+      hour: "2-digit",
+      hourCycle: "h23",
+      timeZone: user.timezone,
+    })
+      .formatToParts(now)
+      .find((part) => part.type === "hour")!.value,
+  );
+  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
   const action = markHabitAction.bind(null, userId, today);
   return (
     <main className="page">
       <header className="app-header flex items-end justify-between py-6">
         <div>
           <p className="label mb-1">{date}</p>
-          <h1 className="text-[32px] font-extrabold leading-10 tracking-[-.03em]">Good evening</h1>
+          <h1 className="text-[32px] font-extrabold leading-10 tracking-[-.03em]">{greeting}</h1>
         </div>
         <span className="number text-sm text-ink-3">
           {items.filter((x) => x.entry?.status === "done").length}/{items.length}

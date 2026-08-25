@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  completionByWeekday,
   completionRate,
   computeStreak,
   isDue,
@@ -137,6 +138,41 @@ describe("completion rate", () => {
         entries: [{ localDate: "2024-01-01", status: "skip" }],
       }),
     ).toBeNull());
+});
+
+describe("completion by weekday", () => {
+  it("returns null at weekday positions that are never due", () => {
+    const versions: ScheduleVersion[] = [
+      { validFrom: "2024-01-01", schedule: { kind: "days_of_week", days: [1, 3] } },
+    ];
+    expect(
+      completionByWeekday({
+        versions,
+        startedOn: "2024-01-01",
+        today: "2024-01-10",
+        entries: [
+          { localDate: "2024-01-01", status: "done" },
+          { localDate: "2024-01-03", status: "miss" },
+          { localDate: "2024-01-08", status: "done" },
+        ],
+      }),
+    ).toEqual([1, null, 0, null, null, null, null]);
+  });
+
+  it("excludes skips from a weekday denominator", () => {
+    expect(
+      completionByWeekday({
+        versions: daily,
+        startedOn: "2024-01-01",
+        today: "2024-01-15",
+        entries: [
+          { localDate: "2024-01-01", status: "done" },
+          { localDate: "2024-01-08", status: "skip" },
+          { localDate: "2024-01-15", status: "miss" },
+        ],
+      })[0],
+    ).toBe(0.5);
+  });
 });
 
 describe("reminders", () => {
