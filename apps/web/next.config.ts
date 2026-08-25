@@ -10,7 +10,7 @@ const config: NextConfig = {
   // до корня воркспейса, движок включаем явно.
   outputFileTracingRoot: root,
   outputFileTracingIncludes: {
-    "/**": ["../../packages/db/generated/client/**"],
+    "/**": ["./generated/client/**"],
   },
 };
 export default config;
