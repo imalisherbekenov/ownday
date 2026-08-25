@@ -23,3 +23,7 @@ apps/mobile/.expo/
 .playwright-daemon/
 .dev-*.log
 next-dev.*.log
+
+.vercel
+
+.omc/
