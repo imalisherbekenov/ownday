@@ -216,6 +216,41 @@ export function createServices(dependencies: ServiceDependencies) {
       );
     },
 
+    async ensureUserFromOAuth(input: {
+      provider: "google";
+      externalId: string;
+      email?: string | undefined;
+      emailVerified?: boolean | undefined;
+      timezone: string;
+      locale?: "ru" | "en" | undefined;
+    }) {
+      const found = await dependencies.users.findIdentity(input.provider, input.externalId);
+      if (found) return found.user;
+
+      const verifiedEmail = input.emailVerified === true ? input.email : undefined;
+      if (verifiedEmail) {
+        const emailIdentity = await dependencies.users.findIdentity("email", verifiedEmail);
+        if (emailIdentity) {
+          await dependencies.users.addIdentity(
+            emailIdentity.user.id,
+            input.provider,
+            input.externalId,
+          );
+          return emailIdentity.user;
+        }
+      }
+
+      const user = await dependencies.users.createWithIdentity({
+        provider: input.provider,
+        externalId: input.externalId,
+        timezone: input.timezone,
+        dayStartHour: 4,
+        locale: input.locale ?? "en",
+      });
+      if (verifiedEmail) await dependencies.users.addIdentity(user.id, "email", verifiedEmail);
+      return user;
+    },
+
     dueReminders: (now: Date, limit = 100) => dependencies.reminders.due(now, limit),
     listReminders: (userId: string) => dependencies.reminders.listByUser(userId),
 

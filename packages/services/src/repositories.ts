@@ -59,6 +59,11 @@ export interface UserRepository {
     externalId: string,
   ): Promise<{ user: User; identity: Identity } | null>;
   findIdentityForUser(userId: string, provider: Identity["provider"]): Promise<Identity | null>;
+  addIdentity(
+    userId: string,
+    provider: Identity["provider"],
+    externalId: string,
+  ): Promise<Identity>;
   createWithIdentity(input: {
     provider: Identity["provider"];
     externalId: string;

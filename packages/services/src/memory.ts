@@ -162,6 +162,14 @@ export class InMemoryUserRepository implements UserRepository {
       this.identities.find((x) => x.userId === userId && x.provider === p) ?? null,
     );
   }
+  async addIdentity(userId: string, provider: Identity["provider"], externalId: string) {
+    const found = await this.findIdentity(provider, externalId);
+    if (found) return found.identity;
+    if (!this.users.has(userId)) throw new Error("USER_NOT_FOUND");
+    const identity = { id: randomUUID(), userId, provider, externalId };
+    this.identities.push(identity);
+    return structuredClone(identity);
+  }
   async createWithIdentity(i: Parameters<UserRepository["createWithIdentity"]>[0]) {
     const found = await this.findIdentity(i.provider, i.externalId);
     if (found) return found.user;

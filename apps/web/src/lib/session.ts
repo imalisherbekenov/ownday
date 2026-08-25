@@ -5,6 +5,10 @@ const COOKIE = "habits_session";
 // A session lasts a week and slides forward on activity: a reminder sent in the
 // evening is often opened the next morning, and that must not log anyone out.
 const SESSION_TTL_SECONDS = 7 * 24 * 60 * 60;
+const OAUTH_TTL_SECONDS = 5 * 60;
+const OAUTH_STATE_COOKIE = "habits_oauth_state";
+const OAUTH_NONCE_COOKIE = "habits_oauth_nonce";
+const OAUTH_TZ_COOKIE = "od_oauth_tz";
 const secret = () =>
   new TextEncoder().encode(process.env.SESSION_SECRET ?? "development-only-change-me-32-bytes");
 
@@ -17,8 +21,7 @@ type SessionCookieOptions = { sameSite: "lax" | "none"; secure: boolean; path: s
  * (`CROSS_SITE_COOKIES`), not a build mode (`NODE_ENV`).
  */
 export function sessionCookieOptions(): SessionCookieOptions {
-  if (process.env.CROSS_SITE_COOKIES === "1")
-    return { sameSite: "none", secure: true, path: "/" };
+  if (process.env.CROSS_SITE_COOKIES === "1") return { sameSite: "none", secure: true, path: "/" };
   return { sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/" };
 }
 
@@ -48,6 +51,28 @@ export async function clearSession() {
     maxAge: 0,
   });
 }
+export async function issueOAuthTransaction(state: string, nonce: string, timezone: string) {
+  const jar = await cookies();
+  const options = { httpOnly: true, ...sessionCookieOptions(), maxAge: OAUTH_TTL_SECONDS };
+  jar.set(OAUTH_STATE_COOKIE, state, options);
+  jar.set(OAUTH_NONCE_COOKIE, nonce, options);
+  jar.set(OAUTH_TZ_COOKIE, timezone, options);
+}
+export async function readOAuthTransaction() {
+  const jar = await cookies();
+  return {
+    state: jar.get(OAUTH_STATE_COOKIE)?.value,
+    nonce: jar.get(OAUTH_NONCE_COOKIE)?.value,
+    timezone: jar.get(OAUTH_TZ_COOKIE)?.value,
+  };
+}
+export async function clearOAuthTransaction() {
+  const jar = await cookies();
+  const options = { httpOnly: true, ...sessionCookieOptions(), maxAge: 0 };
+  jar.set(OAUTH_STATE_COOKIE, "", options);
+  jar.set(OAUTH_NONCE_COOKIE, "", options);
+  jar.set(OAUTH_TZ_COOKIE, "", options);
+}
 export const issueMobileSession = (userId: string) => signSession(userId, "30d");
 
 async function verifySession(token: string | undefined) {
@@ -72,7 +97,11 @@ export async function readSessionFromRequest(request: Request) {
 
 type RequestCookies = { get(name: string): { value: string } | undefined };
 type ResponseCookies = {
-  set(name: string, value: string, options: SessionCookieOptions & Record<string, unknown>): unknown;
+  set(
+    name: string,
+    value: string,
+    options: SessionCookieOptions & Record<string, unknown>,
+  ): unknown;
 };
 
 /**

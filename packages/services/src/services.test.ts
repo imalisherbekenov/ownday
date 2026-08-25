@@ -200,6 +200,77 @@ describe("application services", () => {
     expect(a.id).toBe(b.id);
     expect(s.users.users.size).toBe(1);
   });
+  it("returns an existing Google identity without changing identities", async () => {
+    const s = setup();
+    const first = await s.services.ensureUserFromOAuth({
+      provider: "google",
+      externalId: "google-1",
+      email: "first@example.com",
+      emailVerified: true,
+      timezone: "UTC",
+    });
+    const second = await s.services.ensureUserFromOAuth({
+      provider: "google",
+      externalId: "google-1",
+      email: "other@example.com",
+      emailVerified: true,
+      timezone: "Asia/Tashkent",
+    });
+    expect(second.id).toBe(first.id);
+    expect(s.users.identities).toHaveLength(2);
+  });
+  it("links a verified Google email to the existing email account", async () => {
+    const s = setup();
+    const emailUser = await s.users.createWithIdentity({
+      provider: "email",
+      externalId: "person@example.com",
+      timezone: "UTC",
+      dayStartHour: 4,
+      locale: "en",
+    });
+    const googleUser = await s.services.ensureUserFromOAuth({
+      provider: "google",
+      externalId: "google-2",
+      email: "person@example.com",
+      emailVerified: true,
+      timezone: "UTC",
+    });
+    expect(googleUser.id).toBe(emailUser.id);
+    expect((await s.users.findIdentity("google", "google-2"))?.user.id).toBe(emailUser.id);
+    expect(s.users.users.size).toBe(1);
+  });
+  it("does not link an unverified Google email to the existing email account", async () => {
+    const s = setup();
+    const emailUser = await s.users.createWithIdentity({
+      provider: "email",
+      externalId: "person@example.com",
+      timezone: "UTC",
+      dayStartHour: 4,
+      locale: "en",
+    });
+    const googleUser = await s.services.ensureUserFromOAuth({
+      provider: "google",
+      externalId: "google-3",
+      email: "person@example.com",
+      emailVerified: false,
+      timezone: "UTC",
+    });
+    expect(googleUser.id).not.toBe(emailUser.id);
+    expect(await s.users.findIdentityForUser(googleUser.id, "email")).toBeNull();
+    expect(s.users.users.size).toBe(2);
+  });
+  it("creates Google and email identities for a new verified account", async () => {
+    const s = setup();
+    const user = await s.services.ensureUserFromOAuth({
+      provider: "google",
+      externalId: "google-4",
+      email: "new@example.com",
+      emailVerified: true,
+      timezone: "UTC",
+    });
+    expect((await s.users.findIdentity("google", "google-4"))?.user.id).toBe(user.id);
+    expect((await s.users.findIdentity("email", "new@example.com"))?.user.id).toBe(user.id);
+  });
   it("selects and advances reminders", async () => {
     const s = setup(),
       { user, habit } = await base(s),

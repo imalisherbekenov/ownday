@@ -11,6 +11,10 @@
         "SESSION_SECRET",
         "CROSS_SITE_COOKIES",
         "APP_URL",
+        "GOOGLE_CLIENT_ID",
+        "GOOGLE_CLIENT_SECRET",
+        "RESEND_API_KEY",
+        "MAGIC_LINK_FROM",
         "NODE_ENV"
       ],
       "outputs": ["dist/**", "generated/**", ".next/**", "!.next/cache/**"]

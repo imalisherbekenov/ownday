@@ -204,6 +204,10 @@ export class PrismaUserRepository implements UserRepository {
       ? { id: r.id, userId: r.userId, provider: r.provider, externalId: r.externalId }
       : null;
   }
+  async addIdentity(userId: string, provider: Identity["provider"], externalId: string) {
+    const r = await this.p.identity.create({ data: { userId, provider, externalId } });
+    return { id: r.id, userId: r.userId, provider: r.provider, externalId: r.externalId };
+  }
   async createWithIdentity(i: Parameters<UserRepository["createWithIdentity"]>[0]) {
     const x = await this.findIdentity(i.provider, i.externalId);
     return (

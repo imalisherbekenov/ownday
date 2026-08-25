@@ -3,10 +3,13 @@ import { redirect } from "next/navigation";
 import { ensureDemoData, repositories } from "@/lib/services";
 import { issueSession } from "@/lib/session";
 import { SignJWT, jwtVerify } from "jose";
-import { StubMagicLinkSender } from "@/lib/magic-link";
+import { createMagicLinkSender } from "@/lib/magic-link";
 const key = () =>
   new TextEncoder().encode(process.env.SESSION_SECRET ?? "development-only-change-me-32-bytes");
-export async function requestMagicLink(formData: FormData) {
+export async function requestMagicLink(
+  _previousState: { error?: string; ok?: boolean; token?: string | undefined },
+  formData: FormData,
+) {
   const email = String(formData.get("email") ?? "")
     .trim()
     .toLowerCase();
@@ -15,7 +18,7 @@ export async function requestMagicLink(formData: FormData) {
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("10m")
     .sign(key());
-  await new StubMagicLinkSender().send({
+  await createMagicLinkSender().send({
     email,
     url: `${process.env.APP_URL ?? "http://localhost:3000"}/auth/verify?token=${token}`,
   });

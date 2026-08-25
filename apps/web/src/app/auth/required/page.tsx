@@ -17,6 +17,9 @@ export default async function AuthRequiredPage() {
         Ownday узнаёт вас по данным Telegram, а этот браузер их не передаёт. Откройте приложение
         через бота — там вход происходит сам.
       </p>
+      <Link className="primary max-w-xs" href="/auth/login">
+        Войти в веб-версию
+      </Link>
       {botUsername ? (
         <Link
           className="rounded-input bg-ink px-5 py-3 text-surface active:scale-[.98]"
@@ -25,9 +28,6 @@ export default async function AuthRequiredPage() {
           Открыть в Telegram
         </Link>
       ) : null}
-      <p className="max-w-[42ch] text-caption text-ink-3">
-        Вход по ссылке на почту ещё не подключён.
-      </p>
     </main>
   );
 }
