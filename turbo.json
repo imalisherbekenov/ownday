@@ -3,6 +3,15 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
+      "env": [
+        "DATABASE_URL",
+        "TELEGRAM_BOT_TOKEN",
+        "BOT_TOKEN",
+        "SESSION_SECRET",
+        "CROSS_SITE_COOKIES",
+        "APP_URL",
+        "NODE_ENV"
+      ],
       "outputs": ["dist/**", "generated/**", ".next/**", "!.next/cache/**"]
     },
     "test": { "dependsOn": ["build"], "outputs": [] },
