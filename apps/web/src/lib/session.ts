@@ -8,7 +8,7 @@ const SESSION_TTL_SECONDS = 7 * 24 * 60 * 60;
 const OAUTH_TTL_SECONDS = 5 * 60;
 const OAUTH_STATE_COOKIE = "habits_oauth_state";
 const OAUTH_NONCE_COOKIE = "habits_oauth_nonce";
-const OAUTH_TZ_COOKIE = "od_oauth_tz";
+const OAUTH_TZ_COOKIE = "habits_oauth_tz";
 const secret = () =>
   new TextEncoder().encode(process.env.SESSION_SECRET ?? "development-only-change-me-32-bytes");
 
