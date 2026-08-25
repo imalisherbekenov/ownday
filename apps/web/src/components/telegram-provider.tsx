@@ -13,12 +13,21 @@ type TelegramButton = {
 
 type TelegramBackButton = Omit<TelegramButton, "setText">;
 
+// Методы прогресса есть у настоящего MainButton, но не у dev-заглушки
+// ?mockTelegram=1 — поэтому необязательные и зовутся через ?.
+type TelegramMainButton = TelegramButton & {
+  showProgress?(leaveActive?: boolean): void;
+  hideProgress?(): void;
+  disable?(): void;
+  enable?(): void;
+};
+
 export type TelegramWebApp = {
   initData: string;
   colorScheme?: "light" | "dark";
   ready(): void;
   expand(): void;
-  MainButton: TelegramButton;
+  MainButton: TelegramMainButton;
   BackButton: TelegramBackButton;
   HapticFeedback?: {
     impactOccurred(style: "light" | "medium" | "heavy"): void;

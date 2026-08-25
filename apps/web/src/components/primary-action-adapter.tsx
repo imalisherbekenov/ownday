@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import Link from "next/link";
 import { PrimaryAction, type LinkRenderer } from "@ownday/ui";
 import { useTelegram } from "./telegram-provider";
@@ -21,6 +21,7 @@ export function PrimaryActionAdapter({
   href?: string;
 }) {
   const telegram = useTelegram();
+  const submitting = useRef(false);
   const label = typeof children === "string" ? children : "Continue";
   useEffect(() => {
     if (!telegram.webApp || telegram.isMock || !formId) return;
@@ -29,7 +30,14 @@ export function PrimaryActionAdapter({
     const form = target instanceof HTMLFormElement ? target : target?.querySelector("form");
     const nativeButton = form?.querySelector<HTMLButtonElement>("button.primary");
     if (nativeButton) nativeButton.hidden = true;
+    // MainButton нажимается сколько угодно раз, и каждое нажатие — отдельная запись
+    // на сервере. На медленной связи так получаются дубли одной привычки. Отправка
+    // здесь одна: дальше страница уходит на другой маршрут и адаптер размонтируется.
     const submit = () => {
+      if (submitting.current) return;
+      submitting.current = true;
+      MainButton.showProgress?.(false);
+      MainButton.disable?.();
       form?.requestSubmit();
     };
     MainButton.setText(label);
@@ -37,7 +45,10 @@ export function PrimaryActionAdapter({
     MainButton.show();
     return () => {
       MainButton.offClick(submit);
+      MainButton.hideProgress?.();
+      MainButton.enable?.();
       MainButton.hide();
+      submitting.current = false;
       if (nativeButton) nativeButton.hidden = false;
     };
   }, [telegram.webApp, telegram.isMock, label, formId]);

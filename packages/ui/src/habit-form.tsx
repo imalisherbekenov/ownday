@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { useFormStatus } from "react-dom";
 import * as Tabs from "@radix-ui/react-tabs";
 import * as Radio from "@radix-ui/react-radio-group";
 import * as Switch from "@radix-ui/react-switch";
@@ -183,9 +184,7 @@ export function HabitForm({
           <input className="control" type="time" name="reminderTime" defaultValue="09:00" />
         </Field>
       )}
-      <button className="primary" type="submit">
-        {initial ? "Сохранить изменения" : "Создать привычку"}
-      </button>
+      <SubmitButton label={initial ? "Сохранить изменения" : "Создать привычку"} />
     </form>
   );
 }
@@ -196,5 +195,18 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
       <span className="label block">{label}</span>
       {children}
     </label>
+  );
+}
+
+// Пока ответ идёт, кнопка обязана быть недоступна. Без этого каждое нажатие
+// доходит до сервера отдельной записью: на медленной связи семь нажатий дают
+// семь одинаковых привычек, и человек считает, что кнопка не работает.
+// useFormStatus читает состояние ближайшей формы, поэтому живёт внутри неё.
+function SubmitButton({ label }: { label: string }) {
+  const { pending } = useFormStatus();
+  return (
+    <button className="primary" type="submit" disabled={pending} aria-busy={pending}>
+      {pending ? "Сохраняем…" : label}
+    </button>
   );
 }
