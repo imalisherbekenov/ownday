@@ -40,6 +40,15 @@ describe("POST /api/auth/telegram", () => {
     await expect(response.json()).resolves.toEqual({ error: "Invalid Telegram authorization" });
   });
 
+  it("reports a server fault, not a bad signature, when the session cannot be issued", async () => {
+    vi.stubEnv("TELEGRAM_BOT_TOKEN", "configured-token");
+    vi.mocked(validateTelegramInitData).mockReturnValue({ id: 42, first_name: "Ada" });
+    vi.mocked(services.ensureUserFromTelegram).mockRejectedValue(new Error("DB_UNREACHABLE"));
+    const response = await POST(request());
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({ error: "Telegram authorization failed" });
+  });
+
   it("creates the Telegram account and session on success", async () => {
     vi.stubEnv("TELEGRAM_BOT_TOKEN", "configured-token");
     vi.mocked(validateTelegramInitData).mockReturnValue({
