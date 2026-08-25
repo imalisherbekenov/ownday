@@ -1,8 +1,14 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { readSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
-export default function AuthRequiredPage() {
+export default async function AuthRequiredPage() {
+  // Внутри Telegram провайдер авторизуется уже после первой отрисовки и зовёт
+  // router.refresh(). Обновляется при этом текущий адрес — то есть эта самая страница.
+  // Без проверки человек с готовой сессией остаётся смотреть на приглашение войти.
+  if (await readSession()) redirect("/");
   const botUsername = process.env.TELEGRAM_BOT_USERNAME;
   return (
     <main className="page flex min-h-[70dvh] flex-col items-center justify-center gap-4 text-center">
