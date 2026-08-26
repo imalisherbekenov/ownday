@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("next/navigation", () => ({ notFound: vi.fn() }));
 vi.mock("@/app/actions", () => ({ markHabitAction: vi.fn() }));
+vi.mock("@/app/habits/actions", () => ({ archiveAction: vi.fn(), restoreAction: vi.fn() }));
 vi.mock("@/components/primary-action-adapter", () => ({
   PrimaryActionAdapter: () => null,
 }));
@@ -43,6 +44,17 @@ describe("HabitDetail", () => {
     expect(button).toHaveAttribute("type", "submit");
     expect(button).toHaveClass("primary");
     expect(button.closest("form")).toHaveAttribute("id", "detail-action");
-    expect(screen.getAllByRole("button")).toHaveLength(1);
+    // Стеречь надо не число кнопок, а число primary-действий. MainButton в Telegram
+    // отправляет форму сам и прячет внутри неё единственную button.primary — окажись
+    // их две, одно нажатие дало бы две записи. Второстепенные действия (архив) primary
+    // не носят и живут в своей форме, поэтому MainButton их не касается.
+    expect(document.querySelectorAll("button.primary")).toHaveLength(1);
+  });
+
+  it("offers archiving as a separate action outside the primary form", async () => {
+    render(await HabitDetail({ params: Promise.resolve({ id: "habit-1" }) }));
+    const archive = screen.getByRole("button", { name: "Убрать в архив" });
+    expect(archive).not.toHaveClass("primary");
+    expect(archive.closest("form")).not.toHaveAttribute("id", "detail-action");
   });
 });

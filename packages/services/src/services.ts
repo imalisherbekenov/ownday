@@ -65,6 +65,19 @@ export function createServices(dependencies: ServiceDependencies) {
     },
     archiveHabit: (id: string, userId: string) => dependencies.habits.archive(id, userId, clock()),
     restoreHabit: (id: string, userId: string) => dependencies.habits.restore(id, userId),
+
+    /**
+     * Удаление — второй шаг после архива, и правило это живёт здесь, а не в кнопке:
+     * из архива видно, что привычка отложена осознанно, и только там её можно стереть.
+     * Уходит всё — отметки, расписания, напоминания, статистика. Возврата нет.
+     */
+    async deleteHabit(id: string, userId: string) {
+      const habit = await dependencies.habits.findById(id);
+      if (!habit || habit.userId !== userId || !habit.archivedAt) return false;
+      await dependencies.entries.deleteByHabit(id);
+      await dependencies.reminders.deleteByHabit(id);
+      return dependencies.habits.delete(id, userId);
+    },
     reorderHabits: (userId: string, ids: string[]) => dependencies.habits.reorder(userId, ids),
     listHabits: (userId: string, includeArchived = false) =>
       dependencies.habits.listByUser(userId, includeArchived),

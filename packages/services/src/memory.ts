@@ -85,6 +85,13 @@ export class InMemoryHabitRepository implements HabitRepository {
       if (h?.userId === userId) h.sortOrder = n;
     });
   }
+  async delete(id: string, userId: string) {
+    const h = this.habits.get(id);
+    if (!h || h.userId !== userId) return false;
+    this.habits.delete(id);
+    this.stats.delete(id);
+    return true;
+  }
   async writeStats(s: HabitStats) {
     this.stats.set(s.habitId, structuredClone(s));
   }
@@ -134,6 +141,9 @@ export class InMemoryEntryRepository implements EntryRepository {
     const key = `${h}:${d}`,
       e = this.entries.get(key);
     return !!e && e.userId === u && this.entries.delete(key);
+  }
+  async deleteByHabit(habitId: string) {
+    for (const [key, e] of this.entries) if (e.habitId === habitId) this.entries.delete(key);
   }
   async listForHabit(h: string, t?: string) {
     return [...this.entries.values()]
@@ -218,6 +228,9 @@ export class InMemoryReminderRepository implements ReminderRepository {
     if (!r) return null;
     r.nextFireAt = at;
     return structuredClone(r);
+  }
+  async deleteByHabit(habitId: string) {
+    for (const [id, r] of this.reminders) if (r.habitId === habitId) this.reminders.delete(id);
   }
   async create(i: Omit<HabitReminder, "id">) {
     const r = { id: randomUUID(), ...i };

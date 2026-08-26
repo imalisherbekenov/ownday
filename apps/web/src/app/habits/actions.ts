@@ -87,6 +87,12 @@ export async function archiveAction(id: string) {
   await services.archiveHabit(id, await getCurrentUserId());
   revalidatePath("/habits");
 }
+// Отказ сервиса — не исключение, а обычный ответ: привычку успели вернуть из архива
+// в другой вкладке, либо она уже удалена. Страница просто перерисовывается.
+export async function deleteHabitAction(id: string) {
+  await services.deleteHabit(id, await getCurrentUserId());
+  revalidatePath("/habits");
+}
 export async function restoreAction(id: string) {
   await services.restoreHabit(id, await getCurrentUserId());
   revalidatePath("/habits");

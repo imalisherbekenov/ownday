@@ -8,15 +8,27 @@ export function ReorderList({
   streaks,
   onReorder,
   onRestore,
+  onDelete,
 }: {
   habits: Habit[];
   streaks: Record<string, number>;
   onReorder: (ids: string[]) => Promise<void>;
   onRestore: (id: string) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
 }) {
   const [items, setItems] = useState(habits),
+    [seen, setSeen] = useState(habits),
+    [confirming, setConfirming] = useState<string | null>(null),
     [drag, setDrag] = useState<string | null>(null),
     [pending, start] = useTransition();
+  // Список живёт в состоянии, чтобы перестановка отзывалась мгновенно, — но тогда
+  // ответ сервера до него не доходит: вернули привычку из архива, а строка осталась
+  // висеть до полной перезагрузки. Сверяем ссылку на пришедший список и принимаем его.
+  if (seen !== habits) {
+    setSeen(habits);
+    setItems(habits);
+    setConfirming(null);
+  }
   function commit(next: Habit[]) {
     setItems(next);
     start(() => onReorder(next.map((x) => x.id)));
@@ -87,12 +99,44 @@ export function ReorderList({
             <span className="block truncate text-sm text-ink-3">{scheduleLabel(h)}</span>
           </Link>
           {h.archivedAt ? (
-            <button
-              className="min-h-11 shrink-0 text-sm font-bold text-done-ink"
-              onClick={() => start(() => onRestore(h.id))}
-            >
-              Вернуть
-            </button>
+            <div className="flex shrink-0 items-center gap-1">
+              {confirming === h.id ? (
+                <>
+                  <button
+                    className="min-h-11 px-2 text-sm font-bold text-ink-3"
+                    onClick={() => setConfirming(null)}
+                  >
+                    Отмена
+                  </button>
+                  <button
+                    className="min-h-11 px-2 text-sm font-bold text-miss"
+                    onClick={() => {
+                      setConfirming(null);
+                      start(() => onDelete(h.id));
+                    }}
+                  >
+                    Удалить насовсем
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    className="min-h-11 px-2 text-sm font-bold text-done-ink"
+                    onClick={() => start(() => onRestore(h.id))}
+                  >
+                    Вернуть
+                  </button>
+                  {/* Второе нажатие — вся защита, какая тут есть, и её достаточно:
+                      привычка уже отложена в архив, то есть это второй шаг, а не первый. */}
+                  <button
+                    className="min-h-11 px-2 text-sm font-bold text-ink-3"
+                    onClick={() => setConfirming(h.id)}
+                  >
+                    Удалить
+                  </button>
+                </>
+              )}
+            </div>
           ) : (
             <StreakPill streak={streaks[h.id] ?? 0} />
           )}

@@ -2,7 +2,7 @@ import Link from "next/link";
 import * as Tabs from "@radix-ui/react-tabs";
 import { getCurrentUserId, services } from "@/lib/services";
 import { ReorderList } from "@/components/reorder-list";
-import { reorderHabitsAction, restoreAction } from "./actions";
+import { deleteHabitAction, reorderHabitsAction, restoreAction } from "./actions";
 export const dynamic = "force-dynamic";
 export default async function HabitsPage({
   searchParams,
@@ -42,6 +42,7 @@ export default async function HabitsPage({
           streaks={streaks}
           onReorder={reorderHabitsAction}
           onRestore={restoreAction}
+          onDelete={deleteHabitAction}
         />
       ) : (
         <div className="card flex flex-col items-center gap-4 p-8 text-center text-ink-3">

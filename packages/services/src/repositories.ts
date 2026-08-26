@@ -28,6 +28,12 @@ export interface HabitRepository {
   listByUser(userId: string, includeArchived?: boolean): Promise<Habit[]>;
   archive(id: string, userId: string, at: Date): Promise<boolean>;
   restore(id: string, userId: string): Promise<boolean>;
+  /**
+   * Стирает привычку насовсем вместе с её статистикой. Отметки и напоминания
+   * снимает вызывающий: в базе за них отвечает каскад, в памяти — никто, и
+   * договориться об этом надо в одном месте, а не в двух реализациях.
+   */
+  delete(id: string, userId: string): Promise<boolean>;
   reorder(userId: string, ids: string[]): Promise<void>;
   writeStats(stats: HabitStats): Promise<void>;
 }
@@ -48,6 +54,7 @@ export interface EntryRepository {
   }): Promise<HabitEntry>;
   setValue(input: SetEntryValueInput): Promise<HabitEntry>;
   delete(habitId: string, localDate: LocalDate, userId: string): Promise<boolean>;
+  deleteByHabit(habitId: string): Promise<void>;
   listForHabit(habitId: string, through?: LocalDate): Promise<HabitEntry[]>;
   listForUser(userId: string, from: LocalDate, through: LocalDate): Promise<HabitEntry[]>;
 }
@@ -89,4 +96,5 @@ export interface ReminderRepository {
   updateNextFireAt(id: string, at: Date): Promise<HabitReminder | null>;
   create(input: Omit<HabitReminder, "id">): Promise<HabitReminder>;
   listByUser(userId: string): Promise<HabitReminder[]>;
+  deleteByHabit(habitId: string): Promise<void>;
 }

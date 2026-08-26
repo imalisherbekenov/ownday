@@ -4,6 +4,7 @@ import { getCurrentUserId, repositories, services } from "@/lib/services";
 import { Heatmap, WeekStrip } from "@ownday/ui";
 import { PrimaryActionAdapter } from "@/components/primary-action-adapter";
 import { markHabitAction } from "@/app/actions";
+import { archiveAction, restoreAction } from "@/app/habits/actions";
 import { heatPoints, scheduleDescription, weekDays } from "@/lib/view-data";
 import { scheduleAt } from "@ownday/core";
 export const dynamic = "force-dynamic";
@@ -109,6 +110,17 @@ export default async function HabitDetail({ params }: { params: Promise<{ id: st
         </button>
       </form>
       <PrimaryActionAdapter formId="detail-action">Mark as done today</PrimaryActionAdapter>
+      {/* Архив — единственный путь к удалению, и начинается он здесь. Отдельная форма,
+          а не кнопка внутри «detail-action»: та отправляется MainButton Telegram, и
+          лишний submit в ней означал бы отметку вместо архивирования. */}
+      <form
+        action={habit.archivedAt ? restoreAction.bind(null, id) : archiveAction.bind(null, id)}
+        className="mt-3"
+      >
+        <button className="min-h-11 w-full font-bold text-ink-3" type="submit">
+          {habit.archivedAt ? "Вернуть из архива" : "Убрать в архив"}
+        </button>
+      </form>
     </main>
   );
 }

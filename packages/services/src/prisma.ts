@@ -100,6 +100,12 @@ export class PrismaHabitRepository implements HabitRepository {
       0
     );
   }
+  async delete(id: string, userId: string) {
+    // deleteMany, а не delete: where по паре (id, userId) — это и есть проверка
+    // владельца. Отметки, расписания, напоминания и статистика уходят каскадом,
+    // он объявлен в схеме на каждой из этих связей.
+    return (await this.p.habit.deleteMany({ where: { id, userId } })).count > 0;
+  }
   async reorder(userId: string, ids: string[]) {
     await this.p.$transaction(
       ids.map((id, sortOrder) =>
@@ -164,6 +170,9 @@ export class PrismaEntryRepository implements EntryRepository {
         })
       ).count > 0
     );
+  }
+  async deleteByHabit(habitId: string) {
+    await this.p.entry.deleteMany({ where: { habitId } });
   }
   async listForHabit(habitId: string, through?: string) {
     return (
@@ -270,6 +279,9 @@ export class PrismaReminderRepository implements ReminderRepository {
   }
   async listByUser(userId: string) {
     return (await this.p.reminder.findMany({ where: { userId } })).map(R);
+  }
+  async deleteByHabit(habitId: string) {
+    await this.p.reminder.deleteMany({ where: { habitId } });
   }
 }
 export const prismaRepositories = (p: PrismaClient) => ({

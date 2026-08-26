@@ -293,6 +293,51 @@ describe("application services", () => {
     expect((await s.users.findIdentity("google", "google-4"))?.user.id).toBe(user.id);
     expect((await s.users.findIdentity("email", "new@example.com"))?.user.id).toBe(user.id);
   });
+  // Удаление необратимо, поэтому у него ровно одна дверь — архив. Проверяется и
+  // отказ, и то, что вместе с привычкой действительно уходят отметки: иначе они
+  // остались бы сиротами в памяти, а в базе их снял бы каскад — и две реализации
+  // означали бы разное.
+  it("refuses to delete a habit that is not archived", async () => {
+    const s = setup(),
+      { user, habit } = await base(s);
+    expect(await s.services.deleteHabit(habit.id, user.id)).toBe(false);
+    expect(await s.habits.findById(habit.id)).not.toBeNull();
+  });
+  it("refuses to delete a habit that belongs to someone else", async () => {
+    const s = setup(),
+      { habit } = await base(s);
+    const owner = (await s.habits.findById(habit.id))!.userId;
+    await s.habits.archive(habit.id, owner, new Date());
+    expect(await s.services.deleteHabit(habit.id, "someone-else")).toBe(false);
+    expect(await s.habits.findById(habit.id)).not.toBeNull();
+  });
+  it("deletes an archived habit together with its entries and reminders", async () => {
+    const s = setup(),
+      { user, habit } = await base(s);
+    await s.services.markEntry({
+      userId: user.id,
+      habitId: habit.id,
+      localDate: "2026-08-26",
+      status: "done",
+      source: "web",
+      clientId: "22222222-2222-4222-8222-222222222221",
+    });
+    await s.reminders.create({
+      userId: user.id,
+      habitId: habit.id,
+      localTime: "09:00",
+      daysMask: 127,
+      channel: "telegram",
+      enabled: true,
+      nextFireAt: new Date(),
+    });
+    await s.habits.archive(habit.id, user.id, new Date());
+
+    expect(await s.services.deleteHabit(habit.id, user.id)).toBe(true);
+    expect(await s.habits.findById(habit.id)).toBeNull();
+    expect(await s.entries.listForHabit(habit.id)).toHaveLength(0);
+    expect(await s.reminders.listByUser(user.id)).toHaveLength(0);
+  });
   it("selects and advances reminders", async () => {
     const s = setup(),
       { user, habit } = await base(s),
