@@ -57,7 +57,7 @@ export function HabitForm({
           <Radio.Root
             name="color"
             defaultValue={initial?.color ?? "moss"}
-            className="grid grid-cols-8 gap-2"
+            className="grid grid-cols-4 gap-2 sm:grid-cols-8"
           >
             {colors.map((color) => (
               <Radio.Item

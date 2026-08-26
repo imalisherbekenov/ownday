@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { HabitForm } from "@ownday/ui";
 import { saveHabitAction } from "../actions";
 import { PrimaryActionAdapter } from "@/components/primary-action-adapter";
@@ -9,6 +10,12 @@ export default function NewHabitPage() {
         <h1 className="text-[32px] font-extrabold tracking-[-.03em]">Соберите ритм</h1>
         <p className="mt-2 text-ink-3">Начните с действия, которое легко повторить завтра.</p>
       </header>
+      <Link
+        className="mb-4 flex min-h-11 items-center justify-center rounded-input bg-surface-2 px-4 font-bold text-done-ink"
+        href="/templates"
+      >
+        Выбрать из готовых шаблонов
+      </Link>
       <div id="new-habit-form">
         <HabitForm action={saveHabitAction.bind(null, undefined)} />
       </div>

@@ -44,10 +44,15 @@ export default async function HabitsPage({
           onRestore={restoreAction}
         />
       ) : (
-        <div className="card p-8 text-center text-ink-3">Здесь пока пусто.</div>
+        <div className="card flex flex-col items-center gap-4 p-8 text-center text-ink-3">
+          Здесь пока пусто.
+          <Link className="primary max-w-xs" href="/templates">
+            Выбрать из шаблонов
+          </Link>
+        </div>
       )}
       <p className="mt-3 text-sm text-ink-3">
-        Зажмите ручку и перетащите строку, чтобы изменить порядок.
+        Порядок меняется стрелками, а на компьютере строку можно перетащить.
       </p>
       <Link href="/habits/new" className="primary mt-6 flex items-center justify-center">
         Добавить привычку

@@ -54,7 +54,7 @@
     @apply min-h-11 rounded-check px-2 text-sm text-ink-3 data-[state=active]:bg-surface data-[state=active]:text-ink;
   }
   .switch {
-    @apply relative h-7 w-12 rounded-full bg-line data-[state=checked]:bg-done;
+    @apply relative h-7 w-12 rounded-full bg-line after:absolute after:inset-x-0 after:-inset-y-2 after:content-[''] data-[state=checked]:bg-done;
   }
   .switch-thumb {
     @apply block h-5 w-5 translate-x-1 rounded-full bg-surface transition-transform duration-200 data-[state=checked]:translate-x-6;
