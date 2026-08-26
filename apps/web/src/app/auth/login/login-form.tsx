@@ -1,7 +1,7 @@
 "use client";
 import { useActionState } from "react";
-import { requestMagicLink } from "../actions";
-const initialState: { error?: string; ok?: boolean; token?: string | undefined } = {};
+import { requestMagicLink, type MagicLinkState } from "../actions";
+const initialState: MagicLinkState = {};
 export function LoginForm() {
   const [state, action, pending] = useActionState(requestMagicLink, initialState);
   if (state.ok)
@@ -18,8 +18,16 @@ export function LoginForm() {
         type="email"
         autoComplete="email"
         required
+        {...(state.error ? { "aria-invalid": true, "aria-describedby": "email-error" } : {})}
       />
-      {state.error ? <p className="text-sm text-ink-2">Введите корректный адрес почты.</p> : null}
+      {/* Причину называет сервер: адрес не тот и «слишком часто» — разные отказы, и
+          человек по ним делает разное. role="alert" — потому что сообщение появляется
+          после отправки, и без него читающий с экрана не узнает о нём вовсе. */}
+      {state.error ? (
+        <p className="text-sm text-miss" id="email-error" role="alert">
+          {state.error}
+        </p>
+      ) : null}
       <button className="primary" disabled={pending} type="submit">
         {pending ? "Отправляем…" : "Получить ссылку для входа"}
       </button>
