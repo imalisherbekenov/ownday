@@ -31,6 +31,7 @@ import { PrimaryActionAdapter } from "./primary-action-adapter";
 describe("PrimaryActionAdapter", () => {
   afterEach(() => {
     cleanup();
+    document.body.innerHTML = "";
     vi.clearAllMocks();
   });
   it("leaves link actions visible and does not claim Telegram MainButton", () => {
@@ -49,4 +50,38 @@ describe("PrimaryActionAdapter", () => {
     expect(screen.queryByRole("button", { name: "Save" })).not.toBeInTheDocument();
     expect(mainButton.setText).toHaveBeenCalledWith("Save");
   });
+
+  // Тридцать одна секунда нажатий дала семь одинаковых привычек, поэтому здесь
+  // проверяется и запрет второго нажатия, и возврат к жизни: отказ сервера не
+  // должен запирать единственную кнопку экрана навсегда.
+  it("submits once while the form is busy and lets go when the form recovers", () => {
+    const { requestSubmit, nativeButton } = mountForm();
+    render(<PrimaryActionAdapter formId="wrapped-form">Save</PrimaryActionAdapter>);
+    const press = mainButton.onClick.mock.calls[0]?.[0] as () => void;
+
+    press();
+    expect(requestSubmit).toHaveBeenCalledTimes(1);
+
+    nativeButton.disabled = true;
+    press();
+    press();
+    expect(requestSubmit).toHaveBeenCalledTimes(1);
+
+    nativeButton.disabled = false;
+    press();
+    expect(requestSubmit).toHaveBeenCalledTimes(2);
+  });
 });
+
+// Оболочка, которую адаптер ищет по formId: форма со своей нативной кнопкой,
+// той самой, которую useFormStatus гасит на время ответа.
+function mountForm() {
+  const host = document.createElement("div");
+  host.id = "wrapped-form";
+  host.innerHTML = '<form><button class="primary" type="submit">Save</button></form>';
+  document.body.append(host);
+  const form = host.querySelector("form") as HTMLFormElement;
+  const requestSubmit = vi.fn();
+  form.requestSubmit = requestSubmit;
+  return { requestSubmit, nativeButton: host.querySelector("button") as HTMLButtonElement };
+}
