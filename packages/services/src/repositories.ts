@@ -59,6 +59,11 @@ export interface UserRepository {
     externalId: string,
   ): Promise<{ user: User; identity: Identity } | null>;
   findIdentityForUser(userId: string, provider: Identity["provider"]): Promise<Identity | null>;
+  /**
+   * Идемпотентно: если пара (provider, externalId) уже занята, возвращается
+   * существующая запись — та, что есть, а не та, что просили. Владельца она не
+   * меняет, поэтому вызывающий обязан сам убедиться, что пара свободна.
+   */
   addIdentity(
     userId: string,
     provider: Identity["provider"],

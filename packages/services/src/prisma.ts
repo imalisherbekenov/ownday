@@ -205,7 +205,15 @@ export class PrismaUserRepository implements UserRepository {
       : null;
   }
   async addIdentity(userId: string, provider: Identity["provider"], externalId: string) {
-    const r = await this.p.identity.create({ data: { userId, provider, externalId } });
+    // upsert, а не create: пара (provider, externalId) уникальна в схеме, и голый
+    // create падал бы на втором одновременном входе — а in-memory в том же месте
+    // спокойно возвращает найденное. Одинаковое поведение здесь не роскошь: тесты
+    // видят только вторую реализацию.
+    const r = await this.p.identity.upsert({
+      where: { provider_externalId: { provider, externalId } },
+      create: { userId, provider, externalId },
+      update: {},
+    });
     return { id: r.id, userId: r.userId, provider: r.provider, externalId: r.externalId };
   }
   async createWithIdentity(i: Parameters<UserRepository["createWithIdentity"]>[0]) {

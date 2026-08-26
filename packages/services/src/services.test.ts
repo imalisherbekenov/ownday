@@ -259,6 +259,28 @@ describe("application services", () => {
     expect(await s.users.findIdentityForUser(googleUser.id, "email")).toBeNull();
     expect(s.users.users.size).toBe(2);
   });
+  // Контракт addIdentity: занятую пару возвращают, а не заводят вторую и не отнимают.
+  // Обе реализации обязаны отвечать одинаково — Prisma делает это через upsert.
+  it("returns the identity that already holds the pair instead of adding another", async () => {
+    const s = setup();
+    const owner = await s.users.createWithIdentity({
+      provider: "email",
+      externalId: "owner@example.com",
+      timezone: "UTC",
+      dayStartHour: 4,
+      locale: "en",
+    });
+    const other = await s.users.createWithIdentity({
+      provider: "google",
+      externalId: "google-9",
+      timezone: "UTC",
+      dayStartHour: 4,
+      locale: "en",
+    });
+    const again = await s.users.addIdentity(other.id, "email", "owner@example.com");
+    expect(again.userId).toBe(owner.id);
+    expect(s.users.identities.filter((i) => i.externalId === "owner@example.com")).toHaveLength(1);
+  });
   it("creates Google and email identities for a new verified account", async () => {
     const s = setup();
     const user = await s.services.ensureUserFromOAuth({
