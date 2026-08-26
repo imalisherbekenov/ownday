@@ -36,7 +36,9 @@
 - `apps/web/src/lib/session.ts` — единственный владелец сессионной куки:
   `issueSession` · `readSession` · `readSessionFromRequest` · `issueMobileSession` ·
   `clearSession` · `sessionCookieOptions()` ·
-  `refreshSessionCookie(requestCookies, responseCookies)`. Имя куки, срок (7 дней) и
+  `refreshSessionCookie(requestCookies, responseCookies)`, плюс короткая транзакция
+  OAuth: `issueOAuthTransaction` · `readOAuthTransaction` · `clearOAuthTransaction`
+  (пять минут, те же атрибуты). Имя куки, срок (7 дней) и
   `SameSite`/`Secure` наружу не выходят: не пиши имя куки нигде, зови `clearSession()`.
   У `refreshSessionCookie` оба хранилища кук описаны структурно, а не типами Next, —
   чтобы шов проверялся юнит-тестом.
@@ -52,7 +54,9 @@
 - `apps/web/src/components/mini-app-back-button.tsx` — BackButton Telegram; список
   вложенных маршрутов лежит внутри.
 - `apps/web/src/components/primary-action-adapter.tsx` — единоличный владелец MainButton;
-  пока MainButton показан, нативная `button.primary` внутри формы спрятана.
+  пока MainButton показан, нативная `button.primary` внутри формы спрятана. Она же —
+  источник правды о том, идёт ли отправка: адаптер читает её `disabled` и зеркалит его на
+  MainButton, поэтому второе нажатие не проходит, а отказ сервера кнопку не запирает.
 - `apps/web/src/lib/services.ts` — выбор репозиториев и `getCurrentUserId()`.
 - `apps/web/src/lib/telegram-auth.ts` —
   `validateTelegramInitData(initData, botToken, now?, maxAgeSeconds = 300)`.
@@ -63,8 +67,6 @@
 - `apps/bot/src/handlers.ts` — весь диалог; состояние мастера в `Session`, `BotContext`
   структурный, а не тип grammY, поэтому хендлеры тестируются без grammY.
 - `docs/design.md` — фронтматтер и есть источник токенов.
-- `packages/db/prisma/partial-index.sql` — частичный индекс, который Prisma 6 не умеет
-  описать схемой. Он **намеренно не применён**: вписать в первую же будущую миграцию.
 - `.claude/launch.json` — конфиг превью для веба, порт 3111.
 
 ## Архитектура
@@ -78,9 +80,18 @@
 - Сессия — JWT (jose) в httpOnly-куке на 7 дней; продлевается в middleware, потому что
   Server Components не умеют ставить куки. Мобильный носит тот же JWT в
   `Authorization: Bearer`, и `readSessionFromRequest` понимает оба варианта.
-- Входов три: Telegram initData (`/api/auth/telegram`), magic link (`/auth/verify`, отправка
-  пока `StubMagicLinkSender`) и обмен веб-сессии на мобильный токен
-  (`/api/auth/mobile/session` → `ownday://auth/callback`).
+- Входов четыре: Telegram initData (`/api/auth/telegram`), Google по OIDC
+  (`/auth/google` → `/auth/google/callback`), magic link (`/auth/login` → `/auth/verify`)
+  и обмен веб-сессии на мобильный токен (`/api/auth/mobile/session` →
+  `ownday://auth/callback`). Отправку письма выбирает `createMagicLinkSender()`: с
+  `RESEND_API_KEY` — Resend, без него — строка в консоли. Форма письма огорожена
+  окном в памяти процесса (`lib/rate-limit.ts`), потолок описан там же.
+- Google не приносит часовой пояс, а от пояса зависит, какой день считается сегодня.
+  Поэтому его называет браузер на странице входа, он едет со `state` и `nonce` в
+  короткоживущих куках и проверяется через `Intl` до записи в базу.
+- Два аккаунта сливаются в один, только когда почта совпала **и** Google назвал её
+  подтверждённой (`ensureUserFromOAuth`). Неподтверждённая не сливается никогда —
+  иначе регистрация на чужой адрес открывала бы чужие привычки.
 - Mini App и веб — одно приложение Next. Расходятся оболочкой (`AppShell`) и тремя
   адаптерами Telegram; больше нигде ветвления по среде нет.
 - SDK Telegram подключён обычным `<script>` в `<head>` у `apps/web/src/app/layout.tsx`; соседний инлайн-скрипт
@@ -116,7 +127,12 @@
 - `SESSION_SECRET` — подпись сессионных JWT.
 - `CROSS_SITE_COOKIES` — `1` включает `SameSite=None; Secure`. Это решение деплоя;
   `NODE_ENV` в нём не участвует.
-- `APP_URL` — https-origin веба: от него зависят кнопки Mini App у бота и magic-link.
+- `APP_URL` — https-origin веба: от него зависят кнопки Mini App у бота, magic-link и
+  `redirect_uri` Google. Без неё вход через Google отвечает 500, а не гадает адрес.
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` — вход по Google. В Google Cloud
+  разрешённым redirect URI прописывается `APP_URL/auth/google/callback`.
+- `RESEND_API_KEY`, `MAGIC_LINK_FROM` — доставка письма со ссылкой. Без ключа ссылка
+  печатается в консоль, адрес отправителя должен быть подтверждён в Resend.
 - `WEBHOOK_URL`, `PORT` — только бот в production.
 - `NODE_ENV`; `EXPO_PUBLIC_API_URL` — мобильный.
 
@@ -127,8 +143,9 @@
   себя по-разному в зависимости от локальной базы.
 - Швов для Mini App ровно два — `apps/web/src/lib/session.ts` (атрибуты куки, парность
   issue/clear, продление) и `apps/bot/src/setup.ts` (кнопка меню при заданном и незаданном
-  `APP_URL`). Оболочка, BackButton и MainButton проверяются руками: рендер-тесты Next здесь
-  дороже пользы.
+  `APP_URL`). Оболочка и BackButton проверяются руками: рендер-тесты Next здесь дороже
+  пользы. У MainButton тест есть — `primary-action-adapter.test.tsx`: одно нажатие на одну
+  привычку и возврат кнопки к жизни после отказа сервера стоят дешевле, чем разбор дублей.
 - `apps/web/src/middleware.test.ts` собирает regexp из экспортированного
   `MIDDLEWARE_MATCHER` — копии паттерна в тесте нет и быть не должно.
 - `apps/bot/src/i18n/i18n.test.ts` сверяет наборы ключей `ru` и `en`: новая строка
