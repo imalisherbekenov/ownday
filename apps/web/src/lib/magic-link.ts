@@ -23,7 +23,14 @@ export class ResendMagicLinkSender implements MagicLinkSender {
         html: `<p><a href="${input.url}">Войти в Ownday</a></p><p>Ссылка действует 10 минут.</p>`,
       }),
     });
-    if (!response.ok) throw new Error(`Resend request failed with status ${response.status}`);
+    if (!response.ok) {
+      // Причину отказа Resend пишет в теле: неподтверждённый домен отправителя,
+      // получатель вне песочницы, исчерпанная квота — и по одному только числу их
+      // не различить. Тело уходит в лог вместе с исключением, потому что иначе
+      // разбираться приходится гаданием.
+      const reason = await response.text().catch(() => "");
+      throw new Error(`Resend refused with ${response.status}: ${reason.slice(0, 300)}`);
+    }
   }
 }
 
