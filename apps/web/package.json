@@ -8,7 +8,8 @@
     "build": "node scripts/copy-prisma-engine.mjs && next build",
     "test": "vitest run",
     "lint": "tsc --noEmit",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "format:check": "prettier --check . --ignore-path ../../.prettierignore"
   },
   "dependencies": {
     "@ownday/core": "workspace:*",

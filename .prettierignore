@@ -14,3 +14,10 @@ tsconfig.base.json
 .pnpm-web
 .pnpm-home
 apps/mobile/plugins/*.swift
+.next
+.vercel
+.omc
+.expo
+.gate-bin
+.npm-cache
+.autopilot

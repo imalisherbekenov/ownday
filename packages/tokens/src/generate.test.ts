@@ -11,8 +11,11 @@ describe("design token generation", () => {
     expect(raw).toEqual(source);
     const css = createCss(source);
     const bareRoot = css.slice(css.indexOf(":root {"), css.indexOf("@media"));
-    const mediaDark = css.slice(css.indexOf(":root:not([data-theme=\"light\"])"), css.indexOf("}\n  }"));
-    const explicitDark = css.slice(css.indexOf(":root[data-theme=\"dark\"]"));
+    const mediaDark = css.slice(
+      css.indexOf(':root:not([data-theme="light"])'),
+      css.indexOf("}\n  }"),
+    );
+    const explicitDark = css.slice(css.indexOf(':root[data-theme="dark"]'));
     for (const [name, value] of Object.entries(source.color.light))
       expect(bareRoot).toContain(`--color-${name}: ${value};`);
     for (const [name, value] of Object.entries(source.color.dark)) {
