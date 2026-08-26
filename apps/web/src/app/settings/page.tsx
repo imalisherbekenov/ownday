@@ -1,6 +1,6 @@
 import { SettingsForm } from "@/components/settings-form";
 import { getCurrentUserId, services } from "@/lib/services";
-import { deleteAccountAction, exportDataAction, saveSettingsAction } from "./actions";
+import { deleteAccountAction, saveSettingsAction, signOutAction } from "./actions";
 import { PrimaryActionAdapter } from "@/components/primary-action-adapter";
 export const dynamic = "force-dynamic";
 export default async function SettingsPage() {
@@ -24,7 +24,7 @@ export default async function SettingsPage() {
           telegram={telegram?.externalId}
           email={email?.externalId}
           action={saveSettingsAction}
-          exportAction={exportDataAction}
+          signOutAction={signOutAction}
           deleteAction={deleteAccountAction}
         />
       </div>

@@ -17,10 +17,14 @@ export async function saveSettingsAction(data: FormData) {
   else jar.set("ownday_theme", theme, sessionCookieOptions());
   revalidatePath("/settings");
 }
-export async function exportDataAction() {
-  const userId = await getCurrentUserId();
-  await services.getUserSummary(userId, { days: 365 });
-  revalidatePath("/settings");
+// Выход существует ровно с тех пор, как в вебе появился настоящий вход. Раньше
+// сессия приходила из Telegram и уйти из неё было некуда; теперь на чужом браузере
+// человек входит почтой или Google, и единственным способом закончить сессию было
+// удаление аккаунта вместе с привычками. Внутри Telegram кнопки нет: initData тут
+// же вернёт того же самого человека обратно.
+export async function signOutAction() {
+  await clearSession();
+  redirect("/");
 }
 export async function deleteAccountAction() {
   await services.deleteUser(await getCurrentUserId());

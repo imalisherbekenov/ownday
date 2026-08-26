@@ -1,12 +1,13 @@
 "use client";
 import * as Switch from "@radix-ui/react-switch";
+import { useTelegram } from "./telegram-provider";
 export function SettingsForm({
   timezone,
   dayStartHour,
   telegram,
   email,
   action,
-  exportAction,
+  signOutAction,
   deleteAction,
 }: {
   timezone: string;
@@ -14,9 +15,11 @@ export function SettingsForm({
   telegram?: string | undefined;
   email?: string | undefined;
   action: (d: FormData) => Promise<void>;
-  exportAction: () => Promise<void>;
+  signOutAction: () => Promise<void>;
   deleteAction: () => Promise<void>;
 }) {
+  // Тот же признак среды, что и у оболочки: наличие webApp, а не статус.
+  const insideTelegram = useTelegram().webApp !== null;
   return (
     <form action={action} className="space-y-6">
       <Group title="Расписание">
@@ -62,11 +65,18 @@ export function SettingsForm({
             <option value="dark">Тёмная</option>
           </select>
         </Row>
-        <Row title="Экспорт данных">
-          <button formAction={exportAction} className="min-h-11 font-bold text-done-ink">
-            Подготовить экспорт
-          </button>
+        <Row title="Экспорт данных" hint="Привычки и все отметки одним файлом JSON">
+          <a className="min-h-11 font-bold text-done-ink" href="/api/export">
+            Скачать
+          </a>
         </Row>
+        {insideTelegram ? null : (
+          <Row title="Выйти" hint="Сессия в этом браузере закончится">
+            <button formAction={signOutAction} className="min-h-11 font-bold text-done-ink">
+              Выйти
+            </button>
+          </Row>
+        )}
         <Row title="Удалить аккаунт" hint="Это действие нельзя отменить">
           <button formAction={deleteAction} className="min-h-11 font-bold text-miss">
             Удалить
