@@ -12,5 +12,9 @@ const config: NextConfig = {
   outputFileTracingIncludes: {
     "/**": ["./generated/client/**"],
   },
+  // Значок dev-режима Next по умолчанию стоит внизу слева — там же, где первый пункт
+  // нижней навигации. В продакшене его нет вовсе, но пока смотришь приложение на
+  // узком экране локально, он закрывает «Сегодня» и мешает поверить своим глазам.
+  devIndicators: { position: "top-right" },
 };
 export default config;

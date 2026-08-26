@@ -41,7 +41,12 @@ function WebShell({ children, path }: { children: React.ReactNode; path: string 
           </div>
         </div>
       </aside>
-      <div className="mx-auto w-full max-w-[900px] pb-16 lg:pb-0">{children}</div>
+      {/* Запас снизу считается так же, как в Mini App: фиксированные 4rem не знают про
+          домашнюю полосу айфона, а нижняя навигация на неё вырастает — и последняя
+          строка контента уезжает под неё. */}
+      <div className="mx-auto w-full max-w-[900px] pb-[calc(3.5rem+env(safe-area-inset-bottom))] lg:pb-0">
+        {children}
+      </div>
       <nav
         className="fixed inset-x-0 bottom-0 grid grid-cols-4 border-t border-line-soft bg-surface pb-[env(safe-area-inset-bottom)] lg:hidden"
         aria-label="Нижняя навигация"
@@ -96,7 +101,7 @@ function NavItem({
     <Link
       href={href}
       aria-current={selected ? "page" : undefined}
-      className={`${mobile ? "flex min-h-14 flex-col justify-center text-xs" : "flex min-h-11 items-center gap-3 rounded-input px-3"} ${selected ? "bg-done-soft text-done-ink" : "text-ink-3 hover:bg-surface-2 hover:text-ink"}`}
+      className={`${mobile ? "flex min-h-14 flex-col items-center justify-center gap-0.5 text-xs" : "flex min-h-11 items-center gap-3 rounded-input px-3"} ${selected ? "bg-done-soft text-done-ink" : "text-ink-3 hover:bg-surface-2 hover:text-ink"}`}
     >
       <span aria-hidden="true" className="text-lg">
         {icon}
