@@ -28,10 +28,20 @@ export async function requestMagicLink(_previousState: MagicLinkState, formData:
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("10m")
     .sign(key());
-  await createMagicLinkSender().send({
-    email,
-    url: `${process.env.APP_URL ?? "http://localhost:3000"}/auth/verify?token=${token}`,
-  });
+  // Resend отказывает по причинам, которых мы не знаем заранее: неподтверждённый
+  // домен отправителя, исчерпанная квота, лежащий сервис. Непойманный отказ в
+  // серверном действии — это экран ошибки вместо страницы входа, то есть сломанный
+  // вход вместо не отправленного письма. Причина уходит в лог, человеку остаётся
+  // дверь, которая точно работает.
+  try {
+    await createMagicLinkSender().send({
+      email,
+      url: `${process.env.APP_URL ?? "http://localhost:3000"}/auth/verify?token=${token}`,
+    });
+  } catch (cause) {
+    console.error("magic link: token signed, letter not sent", cause);
+    return { error: "Письмо не отправилось. Попробуйте войти через Google." };
+  }
   return { ok: true };
 }
 export async function completeMagicLink(token: string) {
