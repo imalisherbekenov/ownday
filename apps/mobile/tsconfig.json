@@ -5,7 +5,16 @@
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
     "verbatimModuleSyntax": true,
-    "types": ["nativewind/types"]
+    "types": [
+      "nativewind/types"
+    ]
   },
-  "include": ["app/**/*.tsx", "src/**/*.ts", "src/**/*.tsx", "expo-env.d.ts", "nativewind-env.d.ts"]
+  "include": [
+    "app/**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "expo-env.d.ts",
+    "nativewind-env.d.ts",
+    ".expo/types/**/*.ts"
+  ]
 }

@@ -1,4 +1,5 @@
 import { computeStreak, localDateFor } from "@ownday/core";
+import { randomUUID } from "expo-crypto";
 import type { Entry, LocalDate, ScheduleVersion } from "@ownday/core";
 
 export type HabitSnapshot = {
@@ -8,8 +9,8 @@ export type HabitSnapshot = {
   entries: Entry[];
 };
 
-export const clientIdFor = (habitId: string, localDate: LocalDate) =>
-  `mobile:${habitId}:${localDate}`;
+/** Create once per action; retries reuse the UUID persisted in the queue. */
+export const clientIdFor = (_habitId: string, _localDate: LocalDate) => randomUUID();
 
 export const entryDateFor = (now: Date, timezone: string, dayStartHour: number) =>
   localDateFor(now, timezone, dayStartHour);

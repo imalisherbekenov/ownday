@@ -1,0 +1,18 @@
+// Used only by scripts/android-release.mjs. Keep signing material outside generated projects.
+gradle.beforeProject { project ->
+    project.plugins.withId('com.android.application') {
+        project.androidComponents.finalizeDsl { android ->
+            def required = ['OWNDAY_KEYSTORE', 'OWNDAY_STORE_PASSWORD', 'OWNDAY_KEY_ALIAS', 'OWNDAY_KEY_PASSWORD', 'OWNDAY_VERSION_CODE']
+            required.each { name ->
+                if (!System.getenv(name)) throw new GradleException('Missing signing configuration: ' + name)
+            }
+            def releaseKey = android.signingConfigs.maybeCreate('owndayUpload')
+            releaseKey.storeFile = new File(System.getenv('OWNDAY_KEYSTORE'))
+            releaseKey.storePassword = System.getenv('OWNDAY_STORE_PASSWORD')
+            releaseKey.keyAlias = System.getenv('OWNDAY_KEY_ALIAS')
+            releaseKey.keyPassword = System.getenv('OWNDAY_KEY_PASSWORD')
+            android.buildTypes.getByName('release').signingConfig = releaseKey
+            android.defaultConfig.versionCode = Integer.parseInt(System.getenv('OWNDAY_VERSION_CODE'))
+        }
+    }
+}

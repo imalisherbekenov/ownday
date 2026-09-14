@@ -19,6 +19,6 @@ export async function addTemplateAction(template: HabitTemplate) {
         ? { targetValue: 20, unit: "мин" }
         : {}),
   });
-  revalidatePath("/");
+  revalidatePath("/today");
   revalidatePath("/habits");
 }

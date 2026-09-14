@@ -1,3 +1,3 @@
-import { TodayScreen } from "../src/TodayScreen";
+import { JournalApp } from "../src/JournalApp";
 
-export default TodayScreen;
+export default JournalApp;

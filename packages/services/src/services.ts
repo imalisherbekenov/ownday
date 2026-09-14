@@ -1,7 +1,10 @@
 import {
   completionByWeekday,
   completionRate,
+  completionTotals,
+  assertEntryOperation,
   computeStreak,
+  withInactiveDays,
   isDue,
   isoWeekday,
   localDateFor,
@@ -17,6 +20,10 @@ import type {
   TemplateRepository,
 } from "./repositories.js";
 import type { CreateHabitInput, EntrySource, UpdateHabitInput } from "./types.js";
+import type { EntryOperationInput, MarkEntryInput } from "./repositories.js";
+import { randomUUID } from "node:crypto";
+import { buildUserSummary } from "./summary.js";
+import { validateHabit, validateUser } from "./validation.js";
 
 export type ServiceDependencies = {
   habits: HabitRepository;
@@ -51,9 +58,28 @@ export function createServices(dependencies: ServiceDependencies) {
     return habit;
   }
 
+  async function applyEntryOperation(input: Omit<EntryOperationInput, "now">) {
+    const habit = await requireOwnedHabit(input.habitId, input.userId);
+    const user = await requireUser(input.userId);
+    assertEntryOperation(input);
+    return dependencies.entries.applyOperation({ ...input, now: clock() }, { habit, user });
+  }
+
   return {
-    createHabit: (input: CreateHabitInput) => dependencies.habits.create(input),
+    applyEntryOperation,
+    async createHabit(input: CreateHabitInput) {
+      await requireUser(input.userId);
+      validateHabit(input);
+      return dependencies.habits.create(input);
+    },
     async updateHabit(id: string, userId: string, input: UpdateHabitInput) {
+      await requireOwnedHabit(id, userId);
+      validateHabit(input);
+      if (input.schedule && input.validFrom) {
+        const owner = await requireUser(userId);
+        if (input.validFrom < localDateFor(clock(), owner.timezone, owner.dayStartHour))
+          throw new Error("HISTORICAL_SCHEDULE_IMMUTABLE");
+      }
       if (!input.schedule || input.validFrom) {
         return dependencies.habits.update(id, userId, input);
       }
@@ -63,8 +89,26 @@ export function createServices(dependencies: ServiceDependencies) {
         validFrom: localDateFor(clock(), user.timezone, user.dayStartHour),
       });
     },
-    archiveHabit: (id: string, userId: string) => dependencies.habits.archive(id, userId, clock()),
-    restoreHabit: (id: string, userId: string) => dependencies.habits.restore(id, userId),
+    async archiveHabit(id: string, userId: string) {
+      const user = await requireUser(userId),
+        now = clock();
+      return dependencies.habits.archive(
+        id,
+        userId,
+        now,
+        localDateFor(now, user.timezone, user.dayStartHour),
+      );
+    },
+    async restoreHabit(id: string, userId: string) {
+      const user = await requireUser(userId),
+        now = clock();
+      return dependencies.habits.restore(
+        id,
+        userId,
+        now,
+        localDateFor(now, user.timezone, user.dayStartHour),
+      );
+    },
 
     /**
      * Удаление — второй шаг после архива, и правило это живёт здесь, а не в кнопке:
@@ -74,9 +118,10 @@ export function createServices(dependencies: ServiceDependencies) {
     async deleteHabit(id: string, userId: string) {
       const habit = await dependencies.habits.findById(id);
       if (!habit || habit.userId !== userId || !habit.archivedAt) return false;
+      if (!(await dependencies.habits.delete(id, userId, true))) return false;
       await dependencies.entries.deleteByHabit(id);
       await dependencies.reminders.deleteByHabit(id);
-      return dependencies.habits.delete(id, userId);
+      return true;
     },
     reorderHabits: (userId: string, ids: string[]) => dependencies.habits.reorder(userId, ids),
     listHabits: (userId: string, includeArchived = false) =>
@@ -90,8 +135,10 @@ export function createServices(dependencies: ServiceDependencies) {
       const user = await requireUser(userId);
       return localDateFor(now, user.timezone, user.dayStartHour);
     },
-    updateUser: (id: string, input: Parameters<UserRepository["update"]>[1]) =>
-      dependencies.users.update(id, input),
+    async updateUser(id: string, input: Parameters<UserRepository["update"]>[1]) {
+      validateUser(input);
+      return dependencies.users.update(id, input);
+    },
     deleteUser: (id: string) => dependencies.users.delete(id),
     getUser: (id: string) => dependencies.users.findById(id),
     getUserIdentity: (id: string, provider: "telegram" | "email" | "google") =>
@@ -104,13 +151,14 @@ export function createServices(dependencies: ServiceDependencies) {
       const result = [];
 
       for (const habit of habits) {
+        if (habitStartedOn(habit.scheduleVersions) > localDate) continue;
         if (!isDue(scheduleAt(habit.scheduleVersions, localDate), localDate)) continue;
         const entries = await dependencies.entries.listForHabit(habit.id, localDate);
         const startedOn = habitStartedOn(habit.scheduleVersions);
         const entry = entries.find((candidate) => candidate.localDate === localDate) ?? null;
         const streak = computeStreak({
           versions: habit.scheduleVersions,
-          entries,
+          entries: withInactiveDays(entries, habit.inactiveRanges ?? [], startedOn, localDate),
           today: localDate,
           startedOn,
         });
@@ -126,11 +174,21 @@ export function createServices(dependencies: ServiceDependencies) {
       return result;
     },
 
-    async markEntry(input: Parameters<EntryRepository["upsert"]>[0]) {
-      const existing = await dependencies.entries.findByClientId(input.clientId);
-      if (existing) return existing;
-      await requireOwnedHabit(input.habitId, input.userId);
-      return dependencies.entries.upsert(input);
+    async markEntry(input: MarkEntryInput) {
+      const result = await applyEntryOperation({
+        ...input,
+        operationId: input.clientId,
+        action:
+          input.status === "skip"
+            ? { kind: "skip" }
+            : {
+                kind: "set",
+                status: input.status,
+                ...(input.value === undefined ? {} : { value: input.value }),
+              },
+      });
+      if (!result.entry) throw new Error("ENTRY_NOT_FOUND");
+      return result.entry;
     },
 
     async setEntryValue(input: {
@@ -142,21 +200,45 @@ export function createServices(dependencies: ServiceDependencies) {
     }) {
       const habit = await requireOwnedHabit(input.habitId, input.userId);
       if (habit.type === "binary") throw new Error("HABIT_NOT_NUMERIC");
-      const value = Math.max(0, input.value);
+      if (!Number.isFinite(input.value) || input.value < 0) throw new Error("INVALID_VALUE");
+      const value = input.value;
       const status = habit.targetValue !== null && value >= habit.targetValue ? "done" : "miss";
-      return dependencies.entries.setValue({ ...input, value, status });
+      const result = await applyEntryOperation({
+        ...input,
+        operationId: randomUUID(),
+        action: { kind: "set", value, status },
+      });
+      return result.entry!;
     },
 
-    undoEntry: (input: { userId: string; habitId: string; localDate: LocalDate }) =>
-      dependencies.entries.delete(input.habitId, input.localDate, input.userId),
+    async undoEntry(input: { userId: string; habitId: string; localDate: LocalDate }) {
+      await applyEntryOperation({
+        ...input,
+        source: "web",
+        operationId: randomUUID(),
+        action: { kind: "clear" },
+      });
+      return true;
+    },
 
-    async getHabitStats(habitId: string, now = clock()) {
-      const habit = await dependencies.habits.findById(habitId);
-      if (!habit) throw new Error("HABIT_NOT_FOUND");
+    async getHabitStats(habitId: string, userId: string, now = clock()) {
+      const habit = await requireOwnedHabit(habitId, userId);
       const user = await requireUser(habit.userId);
-      const today = localDateFor(now, user.timezone, user.dayStartHour);
-      const entries = await dependencies.entries.listForHabit(habitId, today);
+      let today = localDateFor(now, user.timezone, user.dayStartHour);
+      if (habit.archivedAt) {
+        const end = shiftDays(
+          habit.archivedOn ?? localDateFor(habit.archivedAt, user.timezone, user.dayStartHour),
+          -1,
+        );
+        if (end < today) today = end;
+      }
       const startedOn = habitStartedOn(habit.scheduleVersions);
+      const entries = withInactiveDays(
+        await dependencies.entries.listForHabit(habitId, today),
+        habit.inactiveRanges ?? [],
+        startedOn,
+        today,
+      );
       const streak = computeStreak({ versions: habit.scheduleVersions, entries, today, startedOn });
       const rate = completionRate({ versions: habit.scheduleVersions, entries, today, startedOn });
       const byWeekday = completionByWeekday({
@@ -178,38 +260,14 @@ export function createServices(dependencies: ServiceDependencies) {
     },
 
     async getUserSummary(userId: string, period: { days: number; now?: Date }) {
+      if (!Number.isInteger(period.days) || period.days < 1 || period.days > 366)
+        throw new Error("INVALID_PERIOD");
       const user = await requireUser(userId);
       const through = localDateFor(period.now ?? clock(), user.timezone, user.dayStartHour);
       const from = shiftDays(through, -(period.days - 1));
       const habits = await dependencies.habits.listByUser(userId, true);
       const entries = await dependencies.entries.listForUser(userId, from, through);
-      let done = 0;
-      let due = 0;
-      const weekdayBuckets = Array.from({ length: 7 }, () => ({ done: 0, due: 0 }));
-
-      for (const habit of habits) {
-        const startedOn = habitStartedOn(habit.scheduleVersions);
-        for (
-          let date = startedOn > from ? startedOn : from;
-          date <= through;
-          date = shiftDays(date, 1)
-        ) {
-          if (!isDue(scheduleAt(habit.scheduleVersions, date), date)) continue;
-          const status = entries.find(
-            (entry) => entry.habitId === habit.id && entry.localDate === date,
-          )?.status;
-          if (status === "skip") continue;
-          due += 1;
-          if (status === "done") done += 1;
-          const bucket = weekdayBuckets[isoWeekday(date) - 1]!;
-          bucket.due += 1;
-          if (status === "done") bucket.done += 1;
-        }
-      }
-      const byWeekday = weekdayBuckets.map((bucket) =>
-        bucket.due ? bucket.done / bucket.due : null,
-      );
-      return { from, through, done, due, completionRate: due ? done / due : null, byWeekday };
+      return buildUserSummary(habits, entries, user, from, through);
     },
 
     async ensureUserFromTelegram(
@@ -230,7 +288,7 @@ export function createServices(dependencies: ServiceDependencies) {
     },
 
     async ensureUserFromOAuth(input: {
-      provider: "google";
+      provider: "google" | "apple";
       externalId: string;
       email?: string | undefined;
       emailVerified?: boolean | undefined;

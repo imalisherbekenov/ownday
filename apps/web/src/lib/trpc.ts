@@ -1,6 +1,7 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { services } from "./services";
+import { assertEntryOperation, type EntryOperation } from "@ownday/core";
 const t = initTRPC.context<{ userId: string | null }>().create();
 const authed = t.procedure.use(({ ctx, next }) => {
   if (!ctx.userId) throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -14,6 +15,18 @@ export const appRouter = t.router({
     })),
   }),
   habits: t.router({
+    changeEntry: authed
+      .input((value: unknown) => {
+        if (!value || typeof value !== "object") throw new TRPCError({ code: "BAD_REQUEST" });
+        const operation = value as EntryOperation;
+        assertEntryOperation(operation);
+        if (operation.baseRevision === undefined)
+          throw new TRPCError({ code: "BAD_REQUEST", message: "BASE_REVISION_REQUIRED" });
+        return operation;
+      })
+      .mutation(({ ctx, input }) =>
+        services.applyEntryOperation({ ...input, userId: ctx.userId, source: "mobile" }),
+      ),
     list: authed.query(({ ctx }) => services.listHabits(ctx.userId)),
     today: authed.query(({ ctx }) => services.listHabitsForToday(ctx.userId, new Date())),
     mark: authed

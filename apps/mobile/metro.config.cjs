@@ -1,4 +1,13 @@
 const { getDefaultConfig } = require("expo/metro-config");
-const { withNativeWind } = require("nativewind/metro");
 
-module.exports = withNativeWind(getDefaultConfig(__dirname), { input: "./global.css" });
+const config = getDefaultConfig(__dirname);
+if (!config.resolver.assetExts.includes("wasm")) config.resolver.assetExts.push("wasm");
+config.server = {
+  ...config.server,
+  enhanceMiddleware: (middleware) => (request, response, next) => {
+    response.setHeader("Cross-Origin-Embedder-Policy", "credentialless");
+    response.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+    return middleware(request, response, next);
+  },
+};
+module.exports = config;

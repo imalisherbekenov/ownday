@@ -1,6 +1,7 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { services } from "@/lib/services";
 import { clearOAuthTransaction, issueSession, readOAuthTransaction } from "@/lib/session";
+import { loginDestination } from "@/lib/login-destination";
 
 export const runtime = "nodejs";
 const googleKeys = createRemoteJWKSet(new URL("https://www.googleapis.com/oauth2/v3/certs"));
@@ -65,7 +66,7 @@ export async function GET(request: Request) {
       locale: request.headers.get("accept-language")?.toLowerCase().startsWith("ru") ? "ru" : "en",
     });
     await issueSession(account.id);
-    return Response.redirect(new URL("/", appUrl));
+    return Response.redirect(new URL(await loginDestination(), appUrl));
   } catch (cause) {
     console.error("google auth: identity valid, session not issued", cause);
     return backToLogin("google");

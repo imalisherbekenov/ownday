@@ -15,13 +15,27 @@
         "GOOGLE_CLIENT_SECRET",
         "RESEND_API_KEY",
         "MAGIC_LINK_FROM",
-        "NODE_ENV"
+        "NODE_ENV",
+        "OPS_HEALTH_TOKEN",
+        "APPLE_NATIVE_CLIENT_ID"
       ],
       "outputs": ["dist/**", "generated/**", ".next/**", "!.next/cache/**"]
     },
-    "test": { "dependsOn": ["build"], "outputs": [] },
-    "lint": { "dependsOn": ["^lint"], "outputs": [] },
-    "typecheck": { "dependsOn": ["^typecheck", "build"], "outputs": [] },
-    "format:check": { "outputs": [] }
+    "test": {
+      "dependsOn": ["build"],
+      "env": ["TEST_DATABASE_URL"],
+      "outputs": []
+    },
+    "lint": {
+      "dependsOn": ["^lint"],
+      "outputs": []
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck", "build"],
+      "outputs": []
+    },
+    "format:check": {
+      "outputs": []
+    }
   }
 }

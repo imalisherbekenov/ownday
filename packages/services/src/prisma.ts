@@ -1,4 +1,8 @@
-import type { PrismaClient } from "@ownday/db";
+import type { PrismaClient, Prisma } from "@ownday/db";
+import { randomUUID } from "node:crypto";
+import { localDateFor } from "@ownday/core";
+import { applyEntryChange } from "./entry-operation.js";
+import type { EntryOperationResult } from "./repositories.js";
 import type {
   EntryRepository,
   HabitRepository,
@@ -20,6 +24,8 @@ const d = (s: string) => new Date(`${s}T00:00:00Z`),
 const H = (r: any): Habit => ({
     ...r,
     targetValue: r.targetValue === null ? null : Number(r.targetValue),
+    archivedOn: r.journalMetadata?.archivedOn ?? null,
+    inactiveRanges: r.journalMetadata?.inactiveRanges ?? [],
     scheduleVersions: r.scheduleVersions.map((v: any) => ({
       validFrom: ld(v.validFrom),
       schedule: { kind: v.kind, ...v.config },
@@ -28,7 +34,7 @@ const H = (r: any): Habit => ({
   E = (r: any): HabitEntry => ({
     ...r,
     localDate: ld(r.localDate),
-    ...(r.value === null ? {} : { value: Number(r.value) }),
+    ...(r.value === null ? { value: undefined } : { value: Number(r.value) }),
   }),
   R = (r: any): HabitReminder => ({ ...r, localTime: r.localTime.toISOString().slice(11, 19) }),
   U = (r: any): User => ({
@@ -55,26 +61,30 @@ export class PrismaHabitRepository implements HabitRepository {
     };
     if (i.targetValue !== undefined) data.targetValue = i.targetValue;
     if (i.unit !== undefined) data.unit = i.unit;
-    return H(await this.p.habit.create({ data, include: { scheduleVersions: true } }));
+    return this.p.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id"=${i.userId}::uuid FOR UPDATE`;
+      return H(await tx.habit.create({ data, include: { scheduleVersions: true } }));
+    });
   }
   async update(id: string, userId: string, i: Parameters<HabitRepository["update"]>[2]) {
-    if (!(await this.p.habit.findFirst({ where: { id, userId } }))) return null;
-    const data: any = { ...i };
-    delete data.schedule;
-    delete data.validFrom;
-    if (i.schedule) {
-      if (!i.validFrom) throw new Error("VALID_FROM_REQUIRED");
-      data.scheduleVersions = {
-        upsert: {
-          where: { habitId_validFrom: { habitId: id, validFrom: d(i.validFrom) } },
-          create: { kind: i.schedule.kind, config: i.schedule, validFrom: d(i.validFrom) },
-          update: { kind: i.schedule.kind, config: i.schedule },
-        },
-      };
-    }
-    return H(
-      await this.p.habit.update({ where: { id }, data, include: { scheduleVersions: true } }),
-    );
+    return this.p.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id"=${userId}::uuid FOR UPDATE`;
+      if (!(await tx.habit.findFirst({ where: { id, userId } }))) return null;
+      const data: any = { ...i, revision: { increment: 1 } };
+      delete data.schedule;
+      delete data.validFrom;
+      if (i.schedule) {
+        if (!i.validFrom) throw new Error("VALID_FROM_REQUIRED");
+        data.scheduleVersions = {
+          upsert: {
+            where: { habitId_validFrom: { habitId: id, validFrom: d(i.validFrom) } },
+            create: { kind: i.schedule.kind, config: i.schedule, validFrom: d(i.validFrom) },
+            update: { kind: i.schedule.kind, config: i.schedule },
+          },
+        };
+      }
+      return H(await tx.habit.update({ where: { id }, data, include: { scheduleVersions: true } }));
+    });
   }
   async findById(id: string) {
     const r = await this.p.habit.findUnique({ where: { id }, include: { scheduleVersions: true } });
@@ -90,28 +100,89 @@ export class PrismaHabitRepository implements HabitRepository {
     ).map(H);
   }
   async archive(id: string, userId: string, at: Date) {
-    return (
-      (await this.p.habit.updateMany({ where: { id, userId }, data: { archivedAt: at } })).count > 0
-    );
+    return this.p.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id"=${userId}::uuid FOR UPDATE`;
+      const habit = await tx.habit.findFirst({ where: { id, userId } }),
+        user = await tx.user.findUnique({ where: { id: userId } });
+      if (!habit || !user) return false;
+      if (habit.archivedAt) return true;
+      const metadata = habit.journalMetadata as Prisma.InputJsonObject,
+        ranges = (metadata.inactiveRanges ?? []) as Array<{ from: string; through: string | null }>;
+      const from = localDateFor(at, user.timezone, user.dayStartHour);
+      await tx.habit.update({
+        where: { id },
+        data: {
+          archivedAt: at,
+          revision: { increment: 1 },
+          journalMetadata: {
+            ...metadata,
+            archivedOn: from,
+            inactiveRanges: [...ranges, { from, through: null }],
+          },
+        },
+      });
+      return true;
+    });
   }
-  async restore(id: string, userId: string) {
-    return (
-      (await this.p.habit.updateMany({ where: { id, userId }, data: { archivedAt: null } })).count >
-      0
-    );
+  async restore(id: string, userId: string, at = new Date()) {
+    return this.p.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id"=${userId}::uuid FOR UPDATE`;
+      const habit = await tx.habit.findFirst({ where: { id, userId } }),
+        user = await tx.user.findUnique({ where: { id: userId } });
+      if (!habit || !user) return false;
+      if (!habit.archivedAt) return true;
+      const metadata = habit.journalMetadata as Prisma.InputJsonObject,
+        from =
+          typeof metadata.archivedOn === "string"
+            ? metadata.archivedOn
+            : localDateFor(habit.archivedAt, user.timezone, user.dayStartHour);
+      const ranges = (metadata.inactiveRanges ?? [{ from, through: null }]) as Array<{
+          from: string;
+          through: string | null;
+        }>,
+        today = localDateFor(at, user.timezone, user.dayStartHour);
+      await tx.habit.update({
+        where: { id },
+        data: {
+          archivedAt: null,
+          revision: { increment: 1 },
+          journalMetadata: {
+            ...metadata,
+            archivedOn: null,
+            inactiveRanges: ranges.map((range) =>
+              range.through === null
+                ? { ...range, through: today < range.from ? range.from : today }
+                : range,
+            ),
+          },
+        },
+      });
+      return true;
+    });
   }
-  async delete(id: string, userId: string) {
-    // deleteMany, а не delete: where по паре (id, userId) — это и есть проверка
-    // владельца. Отметки, расписания, напоминания и статистика уходят каскадом,
-    // он объявлен в схеме на каждой из этих связей.
-    return (await this.p.habit.deleteMany({ where: { id, userId } })).count > 0;
+  async delete(id: string, userId: string, requireArchived = false) {
+    return this.p.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id"=${userId}::uuid FOR UPDATE`;
+      if (
+        !(await tx.habit.findFirst({
+          where: { id, userId, ...(requireArchived ? { archivedAt: { not: null } } : {}) },
+        }))
+      )
+        return false;
+      await tx.habitTombstone.create({ data: { habitId: id, userId } });
+      await tx.habit.delete({ where: { id } });
+      return true;
+    });
   }
   async reorder(userId: string, ids: string[]) {
-    await this.p.$transaction(
-      ids.map((id, sortOrder) =>
-        this.p.habit.updateMany({ where: { id, userId }, data: { sortOrder } }),
-      ),
-    );
+    await this.p.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id"=${userId}::uuid FOR UPDATE`;
+      for (const [sortOrder, id] of ids.entries())
+        await tx.habit.updateMany({
+          where: { id, userId },
+          data: { sortOrder, revision: { increment: 1 } },
+        });
+    });
   }
   async writeStats(s: HabitStats) {
     const x = {
@@ -140,36 +211,142 @@ export class PrismaTemplateRepository implements TemplateRepository {
 }
 export class PrismaEntryRepository implements EntryRepository {
   constructor(private p: PrismaClient) {}
-  async findByClientId(clientId: string) {
-    const row = await this.p.entry.findUnique({ where: { clientId } });
-    return row ? E(row) : null;
-  }
-  async upsert(input: Parameters<EntryRepository["upsert"]>[0]) {
-    return E(
-      await this.p.entry.upsert({
+  async applyOperation(input: Parameters<EntryRepository["applyOperation"]>[0]) {
+    return this.p.$transaction(async (tx) => {
+      // Serialize a user's commits so sequence cursors cannot skip an uncommitted operation.
+      await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${input.userId}::uuid FOR UPDATE`;
+      const habit = await tx.habit.findFirst({
+        where: { id: input.habitId, userId: input.userId },
+        include: { scheduleVersions: true },
+      });
+      const user = await tx.user.findUnique({ where: { id: input.userId } });
+      if (!habit || !user) {
+        if (
+          user &&
+          input.conflictOnIneligible &&
+          (await tx.habitTombstone.findFirst({
+            where: { habitId: input.habitId, userId: input.userId },
+          }))
+        )
+          return {
+            operationId: input.operationId,
+            outcome: "conflict" as const,
+            revision: 0,
+            entry: null,
+            reason: "HABIT_DELETED",
+          };
+        throw new Error("HABIT_NOT_FOUND");
+      }
+      const previous = await tx.entryOperation.findUnique({
+        where: { userId_operationId: { userId: input.userId, operationId: input.operationId } },
+      });
+      if (previous) {
+        if (previous.habitId !== input.habitId || ld(previous.localDate) !== input.localDate)
+          throw new Error("OPERATION_ID_REUSED");
+        const result = previous.result as unknown as EntryOperationResult;
+        for (const field of ["entry", "state"] as const)
+          if (result[field]) {
+            const saved = result[field]!;
+            const { value, ...entry } = saved;
+            result[field] = {
+              ...entry,
+              ...(value == null ? {} : { value: Number(value) }),
+              createdAt: new Date(saved.createdAt),
+              updatedAt: new Date(saved.updatedAt),
+            };
+          }
+        return result;
+      }
+      const old = await tx.entry.findUnique({
         where: { habitId_localDate: { habitId: input.habitId, localDate: d(input.localDate) } },
-        create: { ...input, localDate: d(input.localDate) },
-        update: {},
-      }),
-    );
-  }
-  async setValue(input: Parameters<EntryRepository["setValue"]>[0]) {
-    return E(
-      await this.p.entry.upsert({
-        where: { habitId_localDate: { habitId: input.habitId, localDate: d(input.localDate) } },
-        create: { ...input, localDate: d(input.localDate), clientId: crypto.randomUUID() },
-        update: { value: input.value, status: input.status, source: input.source },
-      }),
-    );
-  }
-  async delete(habitId: string, localDate: string, userId: string) {
-    return (
-      (
-        await this.p.entry.deleteMany({
-          where: { habitId, userId, localDate: d(localDate) },
-        })
-      ).count > 0
-    );
+      });
+      let effective = input;
+      let dependencyConflict = false;
+      if (input.dependsOn) {
+        const dependency = await tx.entryOperation.findUnique({
+          where: { userId_operationId: { userId: input.userId, operationId: input.dependsOn } },
+        });
+        if (
+          !dependency ||
+          dependency.habitId !== input.habitId ||
+          ld(dependency.localDate) !== input.localDate
+        )
+          throw new Error("DEPENDENCY_NOT_FOUND");
+        const result = dependency.result as unknown as EntryOperationResult;
+        dependencyConflict = result.outcome === "conflict";
+        effective = { ...input, baseRevision: result.revision };
+      }
+      const conflict = (reason: string) => ({
+        next: null,
+        result: {
+          operationId: input.operationId,
+          outcome: "conflict" as const,
+          revision: old?.revision ?? 0,
+          entry: old && !old.deleted ? E(old) : null,
+          state: old ? E(old) : null,
+          reason,
+        },
+      });
+      const transition = () => {
+        if (dependencyConflict) return conflict("DEPENDENCY_CONFLICT");
+        try {
+          return applyEntryChange(effective, H(habit), U(user), old ? E(old) : null, randomUUID());
+        } catch (error) {
+          if (
+            input.conflictOnIneligible &&
+            error instanceof Error &&
+            ["HABIT_ARCHIVED", "HABIT_NOT_DUE", "ENTRY_DATE_OUT_OF_RANGE"].includes(error.message)
+          )
+            return conflict(error.message);
+          throw error;
+        }
+      };
+      // Legacy queued operations predate the operation table. Preserve their first acceptance.
+      const change =
+        old?.clientId === input.operationId
+          ? {
+              next: null,
+              result: {
+                operationId: input.operationId,
+                outcome: "applied" as const,
+                revision: old.revision,
+                entry: old.deleted ? null : E(old),
+              },
+            }
+          : transition();
+      if (change.next) {
+        const next = change.next;
+        const data = {
+          userId: next.userId,
+          habitId: next.habitId,
+          localDate: d(next.localDate),
+          clientId: next.clientId,
+          value: next.value ?? null,
+          status: next.status,
+          source: next.source,
+          revision: next.revision!,
+          resetRevision: next.resetRevision!,
+          deleted: next.deleted!,
+          updatedAt: input.now,
+        };
+        await tx.entry.upsert({
+          where: { habitId_localDate: { habitId: input.habitId, localDate: d(input.localDate) } },
+          create: { ...data, id: next.id, createdAt: next.createdAt },
+          update: data,
+        });
+      }
+      await tx.entryOperation.create({
+        data: {
+          userId: input.userId,
+          operationId: input.operationId,
+          habitId: input.habitId,
+          localDate: d(input.localDate),
+          payload: JSON.parse(JSON.stringify(input)),
+          result: JSON.parse(JSON.stringify(change.result)),
+        },
+      });
+      return change.result;
+    });
   }
   async deleteByHabit(habitId: string) {
     await this.p.entry.deleteMany({ where: { habitId } });
@@ -177,14 +354,14 @@ export class PrismaEntryRepository implements EntryRepository {
   async listForHabit(habitId: string, through?: string) {
     return (
       await this.p.entry.findMany({
-        where: { habitId, ...(through ? { localDate: { lte: d(through) } } : {}) },
+        where: { habitId, deleted: false, ...(through ? { localDate: { lte: d(through) } } : {}) },
       })
     ).map(E);
   }
   async listForUser(userId: string, from: string, through: string) {
     return (
       await this.p.entry.findMany({
-        where: { userId, localDate: { gte: d(from), lte: d(through) } },
+        where: { userId, deleted: false, localDate: { gte: d(from), lte: d(through) } },
       })
     ).map(E);
   }

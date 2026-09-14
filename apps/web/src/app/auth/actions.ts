@@ -1,46 +1,58 @@
 "use server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { ensureDemoData, repositories } from "@/lib/services";
+import { repositories } from "@/lib/services";
 import { issueSession } from "@/lib/session";
-import { SignJWT, jwtVerify } from "jose";
 import { createMagicLinkSender } from "@/lib/magic-link";
 import { withinLimit } from "@/lib/rate-limit";
+import { authTokens } from "@/lib/auth-tokens";
+import { loginDestination } from "@/lib/login-destination";
+import { interfaceLocale } from "@/lib/interface-locale";
 const WINDOW_MS = 15 * 60 * 1000;
-// Токен входа наружу не возвращается ни в каком виде: он равен сессии, а единственный
-// сторож у него — почтовый ящик. Обратно едет только «получилось» или причина отказа.
+// The form returns delivery status; the one-time code goes only to the mailbox.
 export type MagicLinkState = { error?: string; ok?: boolean };
-const key = () =>
-  new TextEncoder().encode(process.env.SESSION_SECRET ?? "development-only-change-me-32-bytes");
 export async function requestMagicLink(_previousState: MagicLinkState, formData: FormData) {
+  const locale = await interfaceLocale(),
+    t = (ru: string, en: string) => (locale === "ru" ? ru : en);
   const email = String(formData.get("email") ?? "")
     .trim()
     .toLowerCase();
-  if (!email.includes("@")) return { error: "Введите корректный адрес почты." };
+  if (!email.includes("@"))
+    return { error: t("Введите корректный адрес почты.", "Enter a valid email address.") };
   // Эта форма никого не спрашивает, кто он, и отправляет письмо с нашего домена на
   // любой названный адрес. Без потолка это чужой счёт в Resend, испорченная
   // репутация отправителя и способ засыпать человека письмами от нашего имени.
   // Адрес и источник считаются порознь: один перебирает адреса, другой долбит свой.
   const source = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  if (!withinLimit(`email:${email}`, 3, WINDOW_MS) || !withinLimit(`ip:${source}`, 10, WINDOW_MS))
-    return { error: "Слишком много попыток. Попробуйте через несколько минут." };
-  const token = await new SignJWT({ email })
-    .setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime("10m")
-    .sign(key());
+  if (
+    !(await withinLimit(`email:${email}`, 3, WINDOW_MS)) ||
+    !(await withinLimit(`ip:${source}`, 10, WINDOW_MS))
+  )
+    return {
+      error: t(
+        "Слишком много попыток. Попробуйте через несколько минут.",
+        "Too many attempts. Please try again in a few minutes.",
+      ),
+    };
   // Resend отказывает по причинам, которых мы не знаем заранее: неподтверждённый
   // домен отправителя, исчерпанная квота, лежащий сервис. Непойманный отказ в
   // серверном действии — это экран ошибки вместо страницы входа, то есть сломанный
   // вход вместо не отправленного письма. Причина уходит в лог, человеку остаётся
   // дверь, которая точно работает.
   try {
+    const token = await authTokens().createGrant("email", email);
     await createMagicLinkSender().send({
       email,
       url: `${process.env.APP_URL ?? "http://localhost:3000"}/auth/verify?token=${token}`,
     });
   } catch (cause) {
-    console.error("magic link: token signed, letter not sent", cause);
-    return { error: "Письмо не отправилось. Попробуйте войти через Google." };
+    console.error("magic link: delivery failed", cause);
+    return {
+      error: t(
+        "Письмо не отправилось. Попробуйте войти через Google.",
+        "The email could not be sent. Try signing in with Google.",
+      ),
+    };
   }
   return { ok: true };
 }
@@ -49,32 +61,23 @@ export async function completeMagicLink(token: string) {
   if (!email) redirect("/auth/login?error=link");
   let found = await repositories.users.findIdentity("email", email);
   if (!found) {
-    await ensureDemoData();
-    found = await repositories.users.findIdentity("email", email);
-    if (!found) {
-      const user = await repositories.users.createWithIdentity({
-        provider: "email",
-        externalId: email,
-        timezone: "UTC",
-        dayStartHour: 4,
-        locale: "en",
-      });
-      found = { user, identity: (await repositories.users.findIdentityForUser(user.id, "email"))! };
-    }
+    const user = await repositories.users.createWithIdentity({
+      provider: "email",
+      externalId: email,
+      timezone: "UTC",
+      dayStartHour: 4,
+      locale: "en",
+    });
+    found = { user, identity: (await repositories.users.findIdentityForUser(user.id, "email"))! };
   }
   await issueSession(found.user.id);
-  redirect("/");
+  redirect(await loginDestination());
 }
 
-// Ссылка на вход подписана тем же секретом, что и сессия, и различает их только
-// содержимое. Сессионный токен, поднесённый сюда, дал бы payload без почты, а
-// String(undefined) завёл бы общий аккаунт с адресом "undefined" — по одному на
-// каждого, кто это проделал. Здесь принимается только токен с настоящей почтой,
-// протухший и подделанный уходят на страницу входа, а не в 500.
+// Purpose and expiry are checked while the database atomically claims the code.
 async function emailFromMagicLink(token: string) {
   try {
-    const { payload } = await jwtVerify(token, key());
-    const email = typeof payload.email === "string" ? payload.email.trim().toLowerCase() : "";
+    const email = (await authTokens().consumeEmail(token)) ?? "";
     return email.includes("@") ? email : null;
   } catch {
     return null;

@@ -32,3 +32,17 @@ next-dev.*.log
 
 .gate-bin/
 .npm-cache/
+.test-postgres/
+.patch-work/
+.android-sdk/
+.android-user/
+.release-builds/
+.release-secrets/
+credentials.json
+*.jks
+*.keystore
+*.p12
+*.mobileprovision
+.gradle-local/
+.java-tmp/
+.native-cxx/

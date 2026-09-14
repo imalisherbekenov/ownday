@@ -2,8 +2,13 @@ import { SettingsForm } from "@/components/settings-form";
 import { getCurrentUserId, services } from "@/lib/services";
 import { deleteAccountAction, saveSettingsAction, signOutAction } from "./actions";
 import { PrimaryActionAdapter } from "@/components/primary-action-adapter";
+import { interfaceLocale } from "@/lib/interface-locale";
+import { cookies } from "next/headers";
 export const dynamic = "force-dynamic";
 export default async function SettingsPage() {
+  const locale = await interfaceLocale(),
+    t = (ru: string, en: string) => (locale === "ru" ? ru : en);
+  const theme = (await cookies()).get("ownday_theme")?.value ?? "system";
   const userId = await getCurrentUserId(),
     user = await services.getUser(userId);
   if (!user) throw new Error("USER_NOT_FOUND");
@@ -13,14 +18,15 @@ export default async function SettingsPage() {
   ]);
   return (
     <main className="page py-6">
-      <header className="app-header mb-6">
-        <p className="label">Профиль</p>
-        <h1 className="text-[32px] font-extrabold tracking-[-.03em]">Настройки</h1>
+      <header className="app-header journal-heading mb-6">
+        <p className="label">{t("Профиль", "Your space")}</p>
+        <h1>{t("Настройки", "Make it yours.")}</h1>
       </header>
-      <div id="settings-form">
+      <div>
         <SettingsForm
           timezone={user.timezone}
           dayStartHour={user.dayStartHour}
+          theme={theme}
           telegram={telegram?.externalId}
           email={email?.externalId}
           action={saveSettingsAction}
@@ -28,7 +34,9 @@ export default async function SettingsPage() {
           deleteAction={deleteAccountAction}
         />
       </div>
-      <PrimaryActionAdapter formId="settings-form">Сохранить настройки</PrimaryActionAdapter>
+      <PrimaryActionAdapter formId="settings-form">
+        {t("Сохранить настройки", "Save settings")}
+      </PrimaryActionAdapter>
     </main>
   );
 }

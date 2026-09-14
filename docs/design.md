@@ -3,21 +3,21 @@
 # Этот файл -> packages/tokens (CSS-переменные для web, JS-объект для NativeWind).
 # Нигде в коде не должно быть литеральных хексов. Только имена токенов.
 name: Ownday Design System
-version: 1
+version: 2
 
 color:
   light:
-    ground:      '#EBDDC5'   # тёплый кремовый фон приложения
-    surface:     '#F9F4ED'   # карточка-контейнер списка, модалки
-    surface-2:   '#EEE7DB'   # второй слой: степперы, пустые ячейки хитмапа, трек прогресса
-    ink:         '#201E1D'   # основной текст, нейтральная primary-кнопка
-    ink-2:       '#645C50'   # вторичный текст
-    ink-3:       '#82796A'   # подписи, расписание, легенды, неактивная пилюля
-    line:        '#DCD3C4'   # границы, обводка невыбранного чекбокса
-    line-soft:   '#EEE7DB'   # разделители строк внутри карточки
-    done:        '#728157'   # АКЦЕНТ 1 — только выполнение (шалфей)
-    done-soft:   '#E1EECC'
-    done-ink:    '#3D472B'
+    ground:      '#FBF6ED'   # «Живой дневник», ADR 0013
+    surface:     '#FFFDF8'
+    surface-2:   '#F4ECDF'
+    ink:         '#49392E'
+    ink-2:       '#7B6B5C'
+    ink-3:       '#7B6B5C'
+    line:        '#D6C6B5'
+    line-soft:   '#E9DED0'
+    done:        '#697B48'
+    done-soft:   '#ECEDDC'
+    done-ink:    '#4E6031'
     streak:      '#C67139'   # АКЦЕНТ 2 — только серия (терракота)
     streak-soft: '#FFE1D0'
     streak-ink:  '#8C491A'
@@ -34,17 +34,17 @@ color:
     hue-olive:   '#5F7327'
     hue-slate:   '#4A5A63'
   dark:
-    ground:      '#201E1D'
-    surface:     '#2E2B25'
-    surface-2:   '#474238'
-    ink:         '#F9F4ED'
-    ink-2:       '#A19786'
-    ink-3:       '#82796A'
-    line:        '#474238'
-    line-soft:   '#474238'
-    done:        '#AEBF92'
-    done-soft:   '#3D472B'
-    done-ink:    '#AEBF92'
+    ground:      '#29221D'
+    surface:     '#332C25'
+    surface-2:   '#41372D'
+    ink:         '#F4EBDF'
+    ink-2:       '#C6B7A5'
+    ink-3:       '#C6B7A5'
+    line:        '#786754'
+    line-soft:   '#564637'
+    done:        '#BDCE9A'
+    done-soft:   '#3D462E'
+    done-ink:    '#D1DCBA'
     streak:      '#F6A06B'
     streak-soft: '#643312'
     streak-ink:  '#F6A06B'
@@ -62,11 +62,11 @@ color:
 typography:
   families:
     ui:      'Nunito Sans'   # основной интерфейс, 400/600/700
-    display: 'Nunito'        # заголовки, 800/900
+    display: 'Lora'          # выразительные заголовки с кириллицей, 600/700
   scale:
-    display:  { size: 32, line: 34, weight: 900, tracking: '-0.02em', family: display }
-    h2:       { size: 24, line: 26, weight: 900, tracking: '-0.01em', family: display }
-    h3:       { size: 22, line: 24, weight: 900, tracking: '-0.01em', family: display }
+    display:  { size: 32, line: 40, weight: 600, tracking: '-0.02em', family: display }
+    h2:       { size: 24, line: 32, weight: 600, tracking: '-0.01em', family: display }
+    h3:       { size: 22, line: 30, weight: 600, tracking: '-0.01em', family: display }
     body:     { size: 16, line: 24, weight: 600, tracking: '0',       family: ui      }
     body-alt: { size: 17, line: 26, weight: 400, tracking: '0',       family: ui      }
     caption:  { size: 13, line: 18, weight: 400, tracking: '0',       family: ui      }

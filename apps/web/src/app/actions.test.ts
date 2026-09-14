@@ -1,7 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 import { markHabitAction } from "./actions";
-import { repositories, services } from "@/lib/services";
+import { repositories, services, getCurrentUserId } from "@/lib/services";
+vi.mock("@/lib/services", async (original) => ({
+  ...(await original<typeof import("@/lib/services")>()),
+  getCurrentUserId: vi.fn(),
+}));
 import {
   InMemoryEntryRepository,
   InMemoryHabitRepository,
@@ -22,6 +26,7 @@ describe("markHabitAction", () => {
       locale: "en",
     });
     userId = user.id;
+    vi.mocked(getCurrentUserId).mockResolvedValue(userId);
     habitId = (
       await services.createHabit({
         userId,

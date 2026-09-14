@@ -123,13 +123,13 @@ describe("application services", () => {
     await expect(s.services.listHabitsForToday(user.id, now)).resolves.toMatchObject([
       { startedOn: "2024-01-29", streak: { current: 2, best: 2 } },
     ]);
-    await expect(s.services.getHabitStats(habit.id, now)).resolves.toMatchObject({
+    await expect(s.services.getHabitStats(habit.id, user.id, now)).resolves.toMatchObject({
       currentStreak: 2,
       bestStreak: 2,
       completionRate: 1,
       byWeekday: [1, 1, null, null, null, null, null],
     });
-    await expect(s.services.getUserSummary(user.id, { days: 30, now })).resolves.toEqual({
+    await expect(s.services.getUserSummary(user.id, { days: 30, now })).resolves.toMatchObject({
       from: "2024-01-01",
       through: "2024-01-30",
       done: 2,
@@ -161,7 +161,8 @@ describe("application services", () => {
         clientId: `00000000-0000-4000-8000-00000000000${n}`,
       });
     expect(
-      (await s.services.getHabitStats(habit.id, new Date("2024-01-03T12:00:00Z"))).currentStreak,
+      (await s.services.getHabitStats(habit.id, user.id, new Date("2024-01-03T12:00:00Z")))
+        .currentStreak,
     ).toBe(2);
   });
   it("archives and reorders", async () => {
@@ -402,7 +403,11 @@ describe("application services", () => {
       source: "tg",
       clientId: "20000000-0000-4000-8000-000000000001",
     });
-    const stats = await s.services.getHabitStats(habit.id, new Date("2024-01-02T12:00:00Z"));
+    const stats = await s.services.getHabitStats(
+      habit.id,
+      user.id,
+      new Date("2024-01-02T12:00:00Z"),
+    );
     expect(stats.completionRate).toBe(1);
   });
 });

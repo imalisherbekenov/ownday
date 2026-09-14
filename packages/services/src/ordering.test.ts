@@ -6,6 +6,7 @@ const setup = async () => {
   const habits = new InMemoryHabitRepository(),
     users = new InMemoryUserRepository(),
     services = createServices({
+      clock: () => new Date("2026-08-22T12:00:00Z"),
       habits,
       users,
       entries: new InMemoryEntryRepository(),

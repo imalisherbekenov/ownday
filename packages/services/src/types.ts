@@ -13,7 +13,7 @@ export type User = {
 export type Identity = {
   id: string;
   userId: string;
-  provider: "telegram" | "email" | "google";
+  provider: "telegram" | "email" | "google" | "apple";
   externalId: string;
 };
 export type Habit = {
@@ -28,6 +28,8 @@ export type Habit = {
   unit: string | null;
   sortOrder: number;
   archivedAt: Date | null;
+  archivedOn?: string | null;
+  inactiveRanges?: Array<{from:string;through:string|null}>;
   createdAt: Date;
   scheduleVersions: ScheduleVersion[];
 };
@@ -42,6 +44,9 @@ export type HabitEntry = {
   clientId: string;
   createdAt: Date;
   updatedAt: Date;
+  revision?: number;
+  resetRevision?: number;
+  deleted?: boolean;
 };
 export type HabitStats = {
   habitId: string;

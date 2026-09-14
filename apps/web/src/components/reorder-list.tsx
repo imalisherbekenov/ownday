@@ -2,6 +2,8 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import type { Habit } from "@ownday/services";
+import { useInterfaceLocale } from "./interface-locale";
+import { JournalIcon } from "./journal-icon";
 import { StreakPill } from "@ownday/ui";
 export function ReorderList({
   habits,
@@ -16,6 +18,9 @@ export function ReorderList({
   onRestore: (id: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
 }) {
+  const { t } = useInterfaceLocale();
+  const [query, setQuery] = useState("");
+  const [error, setError] = useState(false);
   const [items, setItems] = useState(habits),
     [seen, setSeen] = useState(habits),
     [confirming, setConfirming] = useState<string | null>(null),
@@ -30,8 +35,17 @@ export function ReorderList({
     setConfirming(null);
   }
   function commit(next: Habit[]) {
+    const previous = items;
+    setError(false);
     setItems(next);
-    start(() => onReorder(next.map((x) => x.id)));
+    start(async () => {
+      try {
+        await onReorder(next.map((x) => x.id));
+      } catch {
+        setItems(previous);
+        setError(true);
+      }
+    });
   }
   function drop(target: string) {
     if (!drag || drag === target) return;
@@ -60,89 +74,116 @@ export function ReorderList({
     commit(next);
   }
   return (
-    <div className={`card divide-y divide-line-soft ${pending ? "opacity-70" : ""}`}>
-      {items.map((h, index) => (
-        <div
-          key={h.id}
-          draggable={!h.archivedAt}
-          onDragStart={() => setDrag(h.id)}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={() => drop(h.id)}
-          className={`flex min-h-[68px] items-center gap-2 px-3 py-3 ${h.archivedAt ? "opacity-60" : ""}`}
-        >
-          {h.archivedAt ? null : (
-            <div className="flex shrink-0">
-              <Move
-                label={`Поднять «${h.title}»`}
-                disabled={index === 0}
-                onMove={() => shift(h.id, -1)}
-              >
-                ↑
-              </Move>
-              <Move
-                label={`Опустить «${h.title}»`}
-                disabled={index === items.length - 1}
-                onMove={() => shift(h.id, 1)}
-              >
-                ↓
-              </Move>
-            </div>
+    <>
+      {error && (
+        <p role="alert" className="journal-message">
+          {t(
+            "Не удалось сохранить изменение. Обнови страницу и повтори.",
+            "Could not save this change. Refresh the page and try again.",
           )}
-          <span
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-input bg-surface-2"
-            style={{ color: `var(--color-hue-${h.color})` }}
-          >
-            {h.icon.slice(0, 1).toUpperCase()}
-          </span>
-          <Link href={`/habit/${h.id}`} className="min-w-0 flex-1">
-            <b className="block truncate">{h.title}</b>
-            <span className="block truncate text-sm text-ink-3">{scheduleLabel(h)}</span>
-          </Link>
-          {h.archivedAt ? (
-            <div className="flex shrink-0 items-center gap-1">
-              {confirming === h.id ? (
-                <>
-                  <button
-                    className="min-h-11 px-2 text-sm font-bold text-ink-3"
-                    onClick={() => setConfirming(null)}
-                  >
-                    Отмена
-                  </button>
-                  <button
-                    className="min-h-11 px-2 text-sm font-bold text-miss"
-                    onClick={() => {
-                      setConfirming(null);
-                      start(() => onDelete(h.id));
-                    }}
-                  >
-                    Удалить насовсем
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    className="min-h-11 px-2 text-sm font-bold text-done-ink"
-                    onClick={() => start(() => onRestore(h.id))}
-                  >
-                    Вернуть
-                  </button>
-                  {/* Второе нажатие — вся защита, какая тут есть, и её достаточно:
+        </p>
+      )}
+      <input
+        className="control mb-4"
+        type="search"
+        aria-label={t("Поиск привычек", "Search habits")}
+        placeholder={t("Найти свою привычку", "Find your habit")}
+        value={query}
+        onChange={(event) => setQuery(event.target.value)}
+      />
+      <div className={`card divide-y divide-line-soft ${pending ? "opacity-70" : ""}`}>
+        {items.map(
+          (h, index) =>
+            h.title.toLocaleLowerCase().includes(query.toLocaleLowerCase()) && (
+              <div
+                key={h.id}
+                draggable={!h.archivedAt && !pending && !query}
+                onDragStart={() => setDrag(h.id)}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={() => drop(h.id)}
+                className={`flex flex-wrap min-h-[68px] items-center gap-2 px-3 py-3 ${h.archivedAt ? "opacity-80" : ""}`}
+              >
+                {h.archivedAt ? null : (
+                  <div className="flex shrink-0">
+                    <Move
+                      label={t(`Поднять «${h.title}»`, `Move ${h.title} up`)}
+                      disabled={pending || index === 0 || Boolean(query)}
+                      onMove={() => shift(h.id, -1)}
+                    >
+                      ↑
+                    </Move>
+                    <Move
+                      label={t(`Опустить «${h.title}»`, `Move ${h.title} down`)}
+                      disabled={pending || index === items.length - 1 || Boolean(query)}
+                      onMove={() => shift(h.id, 1)}
+                    >
+                      ↓
+                    </Move>
+                  </div>
+                )}
+                <span
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-input bg-surface-2"
+                  style={{ color: `var(--color-hue-${h.color})` }}
+                >
+                  <JournalIcon name={h.icon} />
+                </span>
+                <Link href={`/habit/${h.id}`} className="min-w-0 flex-1">
+                  <b className="block break-words">{h.title}</b>
+                  <span className="block truncate text-sm text-ink-3">{scheduleLabel(h, t)}</span>
+                </Link>
+                {h.archivedAt ? (
+                  <div className="flex w-full justify-end flex-wrap items-center gap-1">
+                    {confirming === h.id ? (
+                      <>
+                        <button
+                          className="min-h-11 px-2 text-sm font-bold text-ink-3"
+                          onClick={() => setConfirming(null)}
+                        >
+                          {t("Отмена", "Cancel")}
+                        </button>
+                        <button
+                          className="min-h-11 px-2 text-sm font-bold text-miss"
+                          onClick={() => {
+                            setConfirming(null);
+                            start(async () => {
+                              try {
+                                await onDelete(h.id);
+                              } catch {
+                                setError(true);
+                              }
+                            });
+                          }}
+                        >
+                          {t("Удалить насовсем", "Delete permanently")}
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <Link
+                          className="min-h-11 px-2 text-sm font-bold text-done-ink"
+                          href={`/habits/${h.id}/edit`}
+                        >
+                          {t("Вернуть", "Restore")}
+                        </Link>
+                        {/* Второе нажатие — вся защита, какая тут есть, и её достаточно:
                       привычка уже отложена в архив, то есть это второй шаг, а не первый. */}
-                  <button
-                    className="min-h-11 px-2 text-sm font-bold text-ink-3"
-                    onClick={() => setConfirming(h.id)}
-                  >
-                    Удалить
-                  </button>
-                </>
-              )}
-            </div>
-          ) : (
-            <StreakPill streak={streaks[h.id] ?? 0} />
-          )}
-        </div>
-      ))}
-    </div>
+                        <button
+                          className="min-h-11 px-2 text-sm font-bold text-ink-3"
+                          onClick={() => setConfirming(h.id)}
+                        >
+                          {t("Удалить", "Delete")}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <StreakPill streak={streaks[h.id] ?? 0} />
+                )}
+              </div>
+            ),
+        )}
+      </div>
+    </>
   );
 }
 function Move({
@@ -168,13 +209,13 @@ function Move({
     </button>
   );
 }
-function scheduleLabel(h: Habit) {
+function scheduleLabel(h: Habit, t: (ru: string, en: string) => string) {
   const k = h.scheduleVersions.at(-1)?.schedule.kind;
   return k === "daily"
-    ? "Каждый день"
+    ? t("Каждый день", "Every day")
     : k === "days_of_week"
-      ? "По выбранным дням"
+      ? t("По выбранным дням", "Selected weekdays")
       : k === "times_per_week"
-        ? "Несколько раз в неделю"
-        : "По интервалу";
+        ? t("Несколько раз в неделю", "Weekly goal")
+        : t("По интервалу", "Custom schedule");
 }

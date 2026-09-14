@@ -21,3 +21,14 @@ apps/mobile/plugins/*.swift
 .gate-bin
 .npm-cache
 .autopilot
+.test-postgres
+.patch-work
+.android-sdk
+.gradle-local
+.java-tmp
+.native-cxx
+.android-user
+.release-builds
+.release-secrets
+credentials.json
+scripts/*.gradle

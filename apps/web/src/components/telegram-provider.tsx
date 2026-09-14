@@ -134,6 +134,9 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
       }
 
       const colorScheme = webApp.colorScheme ?? null;
+      document.documentElement.dataset.miniApp = "true";
+      if (colorScheme === "light" || colorScheme === "dark")
+        document.documentElement.dataset.theme = colorScheme;
       webApp.ready();
       webApp.expand();
 
@@ -174,15 +177,42 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
         });
     };
 
-    const sdkScript = document.getElementById("telegram-web-app-sdk");
+    let sdkScript = document.getElementById("telegram-web-app-sdk");
+    const telegramLaunch = new URLSearchParams(window.location.hash.slice(1)).has("tgWebAppData");
+    if (!sdkScript && telegramLaunch && !window.Telegram?.WebApp) {
+      const script = document.createElement("script");
+      script.id = "telegram-web-app-sdk";
+      script.src = "https://telegram.org/js/telegram-web-app.js";
+      script.async = true;
+      document.head.appendChild(script);
+      sdkScript = script;
+    }
+    const loaded = () => {
+      document.documentElement.dataset.telegramSdkLoaded = "true";
+      initialise();
+    };
+    const failed = () => {
+      if (cancelled) return;
+      sdkScript?.remove();
+      setState({
+        status: "error",
+        webApp: null,
+        isMock: false,
+        colorScheme: null,
+        error: "Не удалось загрузить Telegram. Повтори попытку.",
+      });
+    };
     const sdkAlreadyLoaded = document.documentElement.dataset.telegramSdkLoaded === "true";
     if (sdkAlreadyLoaded || window.Telegram?.WebApp) initialise();
-    else if (sdkScript) sdkScript.addEventListener("load", initialise, { once: true });
-    else initialise();
+    else if (sdkScript) {
+      sdkScript.addEventListener("load", loaded, { once: true });
+      sdkScript.addEventListener("error", failed, { once: true });
+    } else initialise();
 
     return () => {
       cancelled = true;
-      sdkScript?.removeEventListener("load", initialise);
+      sdkScript?.removeEventListener("load", loaded);
+      sdkScript?.removeEventListener("error", failed);
     };
   }, [attempt, router]);
 

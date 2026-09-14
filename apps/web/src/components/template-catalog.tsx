@@ -1,26 +1,23 @@
 "use client";
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useState } from "react";
+import Link from "next/link";
 import type { HabitTemplate } from "@ownday/services";
-export function TemplateCatalog({
-  templates,
-  onAdd,
-}: {
-  templates: HabitTemplate[];
-  onAdd: (t: HabitTemplate) => Promise<void>;
-}) {
+import { useInterfaceLocale } from "./interface-locale";
+import { JournalIcon } from "./journal-icon";
+export function TemplateCatalog({ templates }: { templates: HabitTemplate[] }) {
+  const { t } = useInterfaceLocale();
   const [query, setQuery] = useState(""),
-    [category, setCategory] = useState("Все"),
-    [pending, start] = useTransition(),
-    categories = ["Все", ...new Set(templates.map((t) => t.category))],
-    shown = useMemo(
-      () =>
-        templates.filter(
-          (t) =>
-            (category === "Все" || t.category === category) &&
-            t.title.toLowerCase().includes(query.toLowerCase()),
-        ),
-      [templates, category, query],
-    );
+    [category, setCategory] = useState<string | null>(null);
+  const categories = [...new Set(templates.map((item) => item.category))];
+  const shown = useMemo(
+    () =>
+      templates.filter(
+        (item) =>
+          (category === null || item.category === category) &&
+          item.title.toLocaleLowerCase().includes(query.toLocaleLowerCase()),
+      ),
+    [templates, category, query],
+  );
   return (
     <>
       <input
@@ -28,42 +25,43 @@ export function TemplateCatalog({
         type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Найти шаблон"
-        aria-label="Поиск шаблонов"
+        placeholder={t("Найти шаблон", "Find a template")}
+        aria-label={t("Поиск шаблонов", "Search templates")}
       />
-      <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
-        {categories.map((c) => (
+      <div className="journal-controls mb-4">
+        {[null, ...categories].map((c) => (
           <button
-            key={c}
-            onClick={() => setCategory(c)}
+            key={c ?? "all"}
+            className="journal-button aria-pressed:bg-done-soft"
             aria-pressed={category === c}
-            className="min-h-11 shrink-0 rounded-full bg-surface-2 px-4 text-sm aria-pressed:bg-done-soft aria-pressed:text-done-ink"
+            onClick={() => setCategory(c)}
           >
-            {c}
+            {c ?? t("Все", "All")}
           </button>
         ))}
       </div>
       <div className="card divide-y divide-line-soft">
-        {shown.map((t) => (
-          <div key={t.id} className="flex min-h-[68px] items-center gap-3 px-4 py-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-input bg-surface-2">
-              {t.icon.slice(0, 1).toUpperCase()}
+        {shown.map((item) => (
+          <div key={item.id} className="flex min-h-20 items-center gap-3 p-4">
+            <span className="journal-marker shrink-0">
+              <JournalIcon name={item.icon} />
             </span>
             <div className="min-w-0 flex-1">
-              <b className="block truncate">{t.title}</b>
-              <span className="text-sm text-ink-3">{t.category}</span>
+              <b className="block break-words">{item.title}</b>
+              <span className="text-sm text-ink-3">{item.category}</span>
             </div>
-            <button
-              disabled={pending}
-              onClick={() => start(() => onAdd(t))}
-              className="min-h-11 min-w-11 rounded-full bg-ink text-surface"
-              aria-label={`Добавить ${t.title}`}
+            <Link
+              href={`/habits/new?template=${encodeURIComponent(item.id)}`}
+              className="journal-button"
+              aria-label={t("Выбрать: ", "Choose: ") + item.title}
             >
               +
-            </button>
+            </Link>
           </div>
         ))}
-        {shown.length === 0 && <p className="p-8 text-center text-ink-3">Ничего не найдено</p>}
+        {!shown.length && (
+          <p className="p-8 text-center">{t("Ничего не найдено", "No templates found")}</p>
+        )}
       </div>
     </>
   );

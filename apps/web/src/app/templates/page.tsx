@@ -1,22 +1,25 @@
 import Link from "next/link";
 import { TemplateCatalog } from "@/components/template-catalog";
 import { getCurrentUserId, services } from "@/lib/services";
-import { addTemplateAction } from "./actions";
+import { interfaceLocale } from "@/lib/interface-locale";
 export const dynamic = "force-dynamic";
 export default async function TemplatesPage() {
-  const userId = await getCurrentUserId(),
-    user = await services.getUser(userId);
-  const templates = await services.listTemplates(user?.locale ?? "ru");
+  await getCurrentUserId();
+  const locale = await interfaceLocale(),
+    t = (ru: string, en: string) => (locale === "ru" ? ru : en);
+  const templates = await services.listTemplates(locale);
   return (
     <main className="page py-6">
-      <header className="app-header mb-6">
-        <p className="label">Быстрый старт</p>
-        <h1 className="text-[32px] font-extrabold tracking-[-.03em]">Шаблоны</h1>
-        <p className="mt-2 text-ink-3">Добавьте готовую привычку одним нажатием.</p>
+      <header className="app-header journal-heading mb-6">
+        <p className="label">{t("Быстрый старт", "A little inspiration")}</p>
+        <h1>{t("С чего начнём?", "Where shall we start?")}</h1>
+        <p className="mt-2 text-ink-3">
+          {t("Выбери привычку, которая подходит твоему дню.", "Choose a habit that fits your day.")}
+        </p>
       </header>
-      <TemplateCatalog templates={templates} onAdd={addTemplateAction} />
+      <TemplateCatalog templates={templates} />
       <Link href="/habits/new" className="primary mt-6 flex items-center justify-center">
-        Создать свою
+        {t("Создать свою", "Create my own")}
       </Link>
     </main>
   );

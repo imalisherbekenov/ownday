@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+vi.mock("expo-crypto", () => ({ randomUUID: () => crypto.randomUUID() }));
 import { computeStreak, localDateFor } from "@ownday/core";
 import { clientIdFor, entryDateFor, optimisticStreak, streakPillMode } from "./domain";
 import { MutationQueue } from "./mutation-queue";
@@ -96,10 +97,10 @@ describe("widget snapshot and mutation path", () => {
     );
   });
 
-  it("uses the same clientId as an in-app mark", () => {
-    expect(widgetMutationFor("habit-1", "2026-08-22", false).clientId).toBe(
-      clientIdFor("habit-1", "2026-08-22"),
-    );
+  it("gives every widget action a fresh UUID that can be persisted for retry", () => {
+    const a = widgetMutationFor("habit-1", "2026-08-22", false).clientId;
+    expect(a).toMatch(/^[0-9a-f-]{36}$/);
+    expect(a).not.toBe(widgetMutationFor("habit-1", "2026-08-22", false).clientId);
   });
 
   it("keeps an offline widget mark in the shared queue", async () => {

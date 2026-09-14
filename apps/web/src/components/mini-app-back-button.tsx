@@ -20,7 +20,7 @@ export function MiniAppBackButton() {
   useEffect(() => {
     if (!webApp || !nested) return;
     const goBack = () => {
-      if (window.history.length <= 1) router.replace("/");
+      if (window.history.length <= 1) router.replace("/today");
       else router.back();
     };
     webApp.BackButton.onClick(goBack);

@@ -1,3 +1,7 @@
+export * from "./operations.js";
+export * from "./validation.js";
+export * from "./sync.js";
+export * from "./activity.js";
 export type LocalDate = string;
 export type EntryStatus = "done" | "skip" | "miss";
 export type Schedule =
@@ -24,18 +28,25 @@ const diffDays = (left: LocalDate, right: LocalDate): number =>
   Math.round((parseDate(left).valueOf() - parseDate(right).valueOf()) / DAY);
 export const isoWeekday = (date: LocalDate): number => parseDate(date).getUTCDay() || 7;
 
+const zoneFormatters = new Map<string, Intl.DateTimeFormat>();
 function zonedParts(date: Date, timeZone: string): Record<string, number> {
   const result: Record<string, number> = {};
-  for (const part of new Intl.DateTimeFormat("en-CA", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hourCycle: "h23",
-  }).formatToParts(date))
+  let formatter = zoneFormatters.get(timeZone);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hourCycle: "h23",
+    });
+    if (zoneFormatters.size >= 64) zoneFormatters.delete(zoneFormatters.keys().next().value!);
+    zoneFormatters.set(timeZone, formatter);
+  }
+  for (const part of formatter.formatToParts(date))
     if (part.type !== "literal") result[part.type] = Number(part.value);
   return result;
 }
@@ -43,9 +54,9 @@ function zonedParts(date: Date, timeZone: string): Record<string, number> {
 export function localDateFor(instant: Date, tz: string, dayStartHour: number): LocalDate {
   if (!Number.isInteger(dayStartHour) || dayStartHour < 0 || dayStartHour > 23)
     throw new RangeError("dayStartHour must be 0..23");
-  const shifted = new Date(instant.valueOf() - dayStartHour * 3_600_000);
-  const p = zonedParts(shifted, tz);
-  return `${p.year}-${String(p.month).padStart(2, "0")}-${String(p.day).padStart(2, "0")}`;
+  const p = zonedParts(instant, tz);
+  const date = `${p.year}-${String(p.month).padStart(2, "0")}-${String(p.day).padStart(2, "0")}`;
+  return p.hour! < dayStartHour ? addDays(date, -1) : date;
 }
 
 export function scheduleAt(versions: ScheduleVersion[], date: LocalDate): Schedule {
@@ -73,11 +84,13 @@ export function isDue(schedule: Schedule, date: LocalDate): boolean {
   );
 }
 
-type StreakParams = {
+export type StreakParams = {
   versions: ScheduleVersion[];
   entries: Entry[];
   today: LocalDate;
   startedOn: LocalDate;
+  /** Inclusive end of the active history, e.g. the day before archival. */
+  through?: LocalDate;
 };
 type Streak = { current: number; best: number; unit: "day" | "week" | "month" };
 const entryMap = (entries: Entry[]) => new Map(entries.map((entry) => [entry.localDate, entry]));
@@ -88,7 +101,11 @@ function fixedStreak(params: StreakParams): Streak {
   for (let date = params.startedOn; date <= params.today; date = addDays(date, 1)) {
     if (!isDue(scheduleAt(params.versions, date), date)) continue;
     const status = byDate.get(date)?.status;
-    if (date === params.today && status === undefined) continue;
+    if (
+      date === params.today &&
+      (status === undefined || (status === "miss" && (byDate.get(date)?.value ?? 0) > 0))
+    )
+      continue;
     outcomes.push(status === "done" ? "done" : status === "skip" ? "skip" : "break");
   }
   let run = 0,
@@ -119,40 +136,30 @@ const monthKey = (date: LocalDate): string => date.slice(0, 7);
 
 function periodStreak(params: StreakParams, unit: "week" | "month"): Streak {
   const keyFor = unit === "week" ? weekKey : monthKey;
-  const periods: string[] = [];
+  const periods = new Map<string, { from: LocalDate; through: LocalDate }>();
   for (let date = params.startedOn; date <= params.today; date = addDays(date, 1)) {
     const key = keyFor(date);
-    if (!periods.includes(key)) periods.push(key);
+    const period = periods.get(key) ?? { from: date, through: date };
+    period.through = date;
+    periods.set(key, period);
   }
   const todayKey = keyFor(params.today);
-  const outcomes = periods
-    .filter((key) => key !== todayKey)
-    .map((key) => {
-      const dates = params.entries.filter(
-        (e) => keyFor(e.localDate) === key && e.status === "done",
-      );
-      const representative =
-        unit === "week"
-          ? params.entries.find((e) => keyFor(e.localDate) === key)?.localDate
-          : `${key}-01`;
-      const date = representative ?? params.startedOn;
-      const schedule = scheduleAt(params.versions, date);
-      const target =
-        schedule.kind === "times_per_week" || schedule.kind === "times_per_month"
-          ? schedule.target
-          : 1;
-      return dates.length >= target;
-    });
   let run = 0,
     best = 0;
-  for (const complete of outcomes) {
-    run = complete ? run + 1 : 0;
+  for (const [key, period] of periods) {
+    // The open period may still be completed later; close it on the next period.
+    if (key === todayKey) continue;
+    const totals = completionTotals({ ...params, startedOn: period.from, today: period.through });
+    if (totals.due === 0) continue;
+    run = totals.done >= totals.due ? run + 1 : 0;
     best = Math.max(best, run);
   }
   return { current: run, best, unit };
 }
 
 export function computeStreak(params: StreakParams): Streak {
+  if (params.through && params.through < params.today)
+    params = { ...params, today: params.through };
   if (params.startedOn > params.today) return { current: 0, best: 0, unit: "day" };
   const currentSchedule = scheduleAt(params.versions, params.today);
   if (currentSchedule.kind === "times_per_week") return periodStreak(params, "week");
@@ -161,23 +168,49 @@ export function computeStreak(params: StreakParams): Streak {
 }
 
 export function completionRate(params: StreakParams): number | null {
+  const { done, due } = completionTotals(params);
+  return due === 0 ? null : done / due;
+}
+
+/** Quotas are capped per calendar period and schedule version, never per entry. */
+export function completionTotals(params: StreakParams): { done: number; due: number } {
   const byDate = entryMap(params.entries);
+  const end = params.through && params.through < params.today ? params.through : params.today;
+  const quotas = new Map<string, { done: number; available: number; target: number }>();
   let due = 0,
     done = 0;
-  for (let date = params.startedOn; date <= params.today; date = addDays(date, 1)) {
-    if (!isDue(scheduleAt(params.versions, date), date)) continue;
+  for (let date = params.startedOn; date <= end; date = addDays(date, 1)) {
+    const schedule = scheduleAt(params.versions, date);
+    if (!isDue(schedule, date)) continue;
     const status = byDate.get(date)?.status;
     if (status === "skip") continue;
+    if (schedule.kind === "times_per_week" || schedule.kind === "times_per_month") {
+      const version = params.versions
+        .filter((v) => v.validFrom <= date)
+        .sort((a, b) => b.validFrom.localeCompare(a.validFrom))[0]!;
+      const key = `${version.validFrom}:${schedule.kind === "times_per_week" ? weekKey(date) : monthKey(date)}`;
+      const bucket = quotas.get(key) ?? { done: 0, available: 0, target: schedule.target };
+      bucket.available++;
+      if (status === "done") bucket.done++;
+      quotas.set(key, bucket);
+      continue;
+    }
     due++;
     if (status === "done") done++;
   }
-  return due === 0 ? null : done / due;
+  for (const bucket of quotas.values()) {
+    const target = Math.min(bucket.target, bucket.available);
+    due += target;
+    done += Math.min(target, bucket.done);
+  }
+  return { done, due };
 }
 
 export function completionByWeekday(params: StreakParams): Array<number | null> {
   const byDate = entryMap(params.entries);
   const buckets = Array.from({ length: 7 }, () => ({ done: 0, due: 0 }));
-  for (let date = params.startedOn; date <= params.today; date = addDays(date, 1)) {
+  const end = params.through && params.through < params.today ? params.through : params.today;
+  for (let date = params.startedOn; date <= end; date = addDays(date, 1)) {
     if (!isDue(scheduleAt(params.versions, date), date)) continue;
     const status = byDate.get(date)?.status;
     if (status === "skip") continue;
@@ -205,22 +238,44 @@ export function nextFireAt(reminder: Reminder, tz: string, now: Date): Date {
     if (!maskIncludes(reminder.daysMask, isoWeekday(localDate))) continue;
     const [y, m, d] = localDate.split("-").map(Number) as [number, number, number];
     const estimate = Date.UTC(y, m - 1, d, hour, minute, second);
+    // Probe nearby offsets, then validate the actual wall time. Normal days need only
+    // a handful of Intl calls; a minute scan is reserved for a missing wall time.
+    const offsets = new Set<number>();
+    for (const hours of [-36, -12, 0, 12, 36]) {
+      const stamp = estimate + hours * 3600000,
+        p = zonedParts(new Date(stamp), tz);
+      offsets.add(Date.UTC(p.year!, p.month! - 1, p.day!, p.hour!, p.minute!, p.second!) - stamp);
+    }
+    const candidates = [...offsets]
+      .map((zoneOffset) => estimate - zoneOffset)
+      .sort((a, b) => a - b);
+    const exact = candidates.find((stamp) => {
+      const p = zonedParts(new Date(stamp), tz);
+      return (
+        p.year === y &&
+        p.month === m &&
+        p.day === d &&
+        p.hour === hour &&
+        p.minute === minute &&
+        p.second === second
+      );
+    });
+    if (exact !== undefined) {
+      if (exact > now.getTime()) return new Date(exact);
+      continue;
+    }
     let firstAfterGap: Date | undefined;
-    for (
-      let stamp = estimate - 15 * 3_600_000;
-      stamp <= estimate + 15 * 3_600_000;
-      stamp += 60_000
-    ) {
+    for (let stamp = candidates[0]!; stamp <= candidates.at(-1)!; stamp += 60_000) {
       const candidate = new Date(stamp);
       const p = zonedParts(candidate, tz);
       if (p.year !== y || p.month !== m || p.day !== d) continue;
-      if (p.hour === hour && p.minute === minute && p.second === second && candidate > now)
-        return candidate;
       const localMinutes = (p.hour ?? 0) * 60 + (p.minute ?? 0);
-      if (!firstAfterGap && localMinutes > hour * 60 + minute && candidate > now)
+      if (localMinutes > hour * 60 + minute) {
         firstAfterGap = candidate;
+        break;
+      }
     }
-    if (firstAfterGap) return firstAfterGap;
+    if (firstAfterGap && firstAfterGap > now) return firstAfterGap;
   }
   throw new RangeError("No firing day in the next week");
 }

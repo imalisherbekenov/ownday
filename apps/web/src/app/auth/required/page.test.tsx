@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/session", () => ({ readSession: vi.fn() }));
+vi.mock("@/lib/interface-locale", () => ({ interfaceLocale: async () => "ru" }));
 vi.mock("next/navigation", () => ({
   redirect: vi.fn((path: string) => {
     throw new Error(`NEXT_REDIRECT:${path}`);
@@ -18,7 +19,7 @@ describe("/auth/required", () => {
   // авторизованный человек навсегда остаётся на приглашении войти.
   it("sends a visitor who already has a session to today", async () => {
     vi.mocked(readSession).mockResolvedValue("user-1");
-    await expect(AuthRequiredPage()).rejects.toThrow("NEXT_REDIRECT:/");
+    await expect(AuthRequiredPage()).rejects.toThrow("NEXT_REDIRECT:/today");
   });
 
   it("still invites a visitor who has no session", async () => {

@@ -16,6 +16,12 @@ const streak = (entries: Entry[], today = "2024-01-05") =>
   computeStreak({ versions: daily, entries, today, startedOn: "2024-01-01" });
 
 describe("local dates", () => {
+  it("compares the wall clock at the day boundary across DST changes", () => {
+    expect(localDateFor(new Date("2024-03-31T02:30:00Z"), "Europe/Berlin", 4)).toBe("2024-03-31");
+    expect(localDateFor(new Date("2024-03-31T01:30:00Z"), "Europe/Berlin", 4)).toBe("2024-03-30");
+    expect(localDateFor(new Date("2024-10-27T02:30:00Z"), "Europe/Berlin", 4)).toBe("2024-10-26");
+    expect(localDateFor(new Date("2024-10-27T03:00:00Z"), "Europe/Berlin", 4)).toBe("2024-10-27");
+  });
   it("rolls an early check-in into the previous habit day", () =>
     expect(localDateFor(new Date("2024-01-02T01:30:00Z"), "UTC", 4)).toBe("2024-01-01"));
   it("handles Berlin spring-forward using Intl timezone conversion", () =>
@@ -116,6 +122,44 @@ describe("streaks", () => {
 });
 
 describe("completion rate", () => {
+  it("uses period quotas, excludes duplicate dates and caps excess completions", () => {
+    const entries: Entry[] = ["2024-01-01", "2024-01-02", "2024-01-03", "2024-01-03"].map(
+      (localDate) => ({ localDate, status: "done" }),
+    );
+    for (const kind of ["times_per_week", "times_per_month"] as const) {
+      expect(
+        completionRate({
+          versions: [{ validFrom: "2024-01-01", schedule: { kind, target: 3 } }],
+          entries,
+          startedOn: "2024-01-01",
+          today: kind === "times_per_week" ? "2024-01-07" : "2024-01-31",
+        }),
+      ).toBe(1);
+    }
+  });
+  it("preserves a completed period when a later target changes and excludes archived days", () => {
+    const versions: ScheduleVersion[] = [
+      { validFrom: "2024-01-01", schedule: { kind: "times_per_week", target: 1 } },
+      { validFrom: "2024-01-08", schedule: { kind: "times_per_week", target: 3 } },
+    ];
+    expect(
+      completionRate({
+        versions,
+        entries: [{ localDate: "2024-01-01", status: "done" }],
+        startedOn: "2024-01-01",
+        today: "2024-01-14",
+      }),
+    ).toBe(0.25);
+    expect(
+      completionRate({
+        versions: daily,
+        entries: [{ localDate: "2024-01-01", status: "done" }],
+        startedOn: "2024-01-01",
+        today: "2024-01-14",
+        through: "2024-01-01",
+      }),
+    ).toBe(1);
+  });
   it("excludes skips from denominator", () =>
     expect(
       completionRate({
@@ -176,6 +220,56 @@ describe("completion by weekday", () => {
 });
 
 describe("reminders", () => {
+  it("supports half-hour transitions and a skipped calendar date", () => {
+    expect(
+      nextFireAt(
+        { localTime: "02:15", daysMask: 127 },
+        "Australia/Lord_Howe",
+        new Date("2026-10-03T14:00:00Z"),
+      ).toISOString(),
+    ).toBe("2026-10-03T15:30:00.000Z");
+    expect(
+      nextFireAt(
+        { localTime: "09:00", daysMask: 127 },
+        "Pacific/Apia",
+        new Date("2011-12-29T20:00:00Z"),
+      ).toISOString(),
+    ).toBe("2011-12-30T19:00:00.000Z");
+  });
+  it("moves to tomorrow when today's reminder has already fired", () => {
+    expect(
+      nextFireAt(
+        { localTime: "12:00", daysMask: 127 },
+        "UTC",
+        new Date("2026-09-13T12:00:00Z"),
+      ).toISOString(),
+    ).toBe("2026-09-14T12:00:00.000Z");
+    expect(
+      nextFireAt(
+        { localTime: "12:00", daysMask: 127 },
+        "UTC",
+        new Date("2026-09-13T16:10:00Z"),
+      ).toISOString(),
+    ).toBe("2026-09-14T12:00:00.000Z");
+  });
+  it("does not repeat a delivery in the second occurrence of an autumn hour", () => {
+    expect(
+      nextFireAt(
+        { localTime: "01:30", daysMask: 127 },
+        "America/New_York",
+        new Date("2026-11-01T05:45:00Z"),
+      ).toISOString(),
+    ).toBe("2026-11-02T06:30:00.000Z");
+  });
+  it("does not repeat a missed spring gap delivery later on the same day", () => {
+    expect(
+      nextFireAt(
+        { localTime: "02:30", daysMask: 127 },
+        "America/New_York",
+        new Date("2026-03-08T07:05:00Z"),
+      ).toISOString(),
+    ).toBe("2026-03-09T06:30:00.000Z");
+  });
   it("finds a normal next local firing instant", () =>
     expect(
       nextFireAt(

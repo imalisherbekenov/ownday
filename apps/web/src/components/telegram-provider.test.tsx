@@ -42,12 +42,36 @@ describe("TelegramProvider", () => {
     delete window.Telegram;
     delete document.documentElement.dataset.miniApp;
     delete document.documentElement.dataset.telegramSdkLoaded;
+    document.getElementById("telegram-web-app-sdk")?.remove();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
     vi.unstubAllEnvs();
     vi.clearAllMocks();
   });
 
+  it("does not load the Telegram SDK on an ordinary public visit", async () => {
+    render(
+      <TelegramProvider>
+        <Probe />
+      </TelegramProvider>,
+    );
+    await waitFor(() => expect(screen.getByText("anonymous")).toBeInTheDocument());
+    expect(document.getElementById("telegram-web-app-sdk")).toBeNull();
+  });
+  it("loads and authenticates the SDK when Telegram launch data is present", async () => {
+    window.history.replaceState({}, "", "/#tgWebAppData=signed");
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({ ok: true }))));
+    render(
+      <TelegramProvider>
+        <Probe />
+      </TelegramProvider>,
+    );
+    const script = document.getElementById("telegram-web-app-sdk")!;
+    expect(script.getAttribute("src")).toBe("https://telegram.org/js/telegram-web-app.js");
+    window.Telegram = { WebApp: createWebApp("signed") };
+    fireEvent.load(script);
+    await waitFor(() => expect(screen.getByText("ready")).toBeInTheDocument());
+  });
   it("enables the development mock without authenticating", async () => {
     window.history.replaceState({}, "", "/?mockTelegram=1");
     window.Telegram = { WebApp: createWebApp("") };

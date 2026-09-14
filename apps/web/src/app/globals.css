@@ -60,6 +60,101 @@
     @apply block h-5 w-5 translate-x-1 rounded-full bg-surface transition-transform duration-200 data-[state=checked]:translate-x-6;
   }
 }
-:root[data-mini-app="true"] .app-header {
-  display: none;
+/* Mini App keeps the journal heading; Telegram provides its own outer chrome. */
+@layer components {
+  .journal-page {
+    @apply py-7;
+  }
+  .journal-heading {
+    @apply mb-7;
+  }
+  .journal-heading h1 {
+    @apply my-4 max-w-xl text-[36px] font-semibold leading-[1.16] tracking-[-.025em] sm:text-[44px];
+  }
+  .journal-heading > p:last-child {
+    @apply max-w-xl leading-7 text-ink-3;
+  }
+  .journal-between {
+    @apply flex items-center justify-between gap-3;
+  }
+  .journal-button {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-input bg-surface-2 px-4 py-2 font-bold text-ink transition-colors hover:bg-done-soft disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .journal-week {
+    @apply border border-line-soft p-4 shadow-none;
+  }
+  .journal-days {
+    @apply mt-4 grid grid-cols-7 gap-1;
+  }
+  .journal-date {
+    @apply flex min-h-[76px] flex-col items-center justify-center gap-1 rounded-input text-sm text-ink-3 aria-pressed:bg-done-soft aria-pressed:text-done-ink;
+  }
+  .journal-date b {
+    @apply text-base text-ink;
+  }
+  .journal-calendar .journal-date {
+    min-height: 52px;
+    padding: 6px 2px;
+  }
+  .journal-section-title {
+    @apply my-7;
+  }
+  .journal-section-title h2 {
+    @apply text-2xl font-semibold;
+  }
+  .journal-group {
+    @apply mb-7 space-y-3;
+  }
+  .journal-habit {
+    @apply mb-3 space-y-4 border border-line-soft p-4 shadow-none sm:p-5;
+  }
+  .journal-habit-title {
+    @apply flex items-center gap-3;
+  }
+  .journal-habit-title a {
+    @apply min-w-0 flex-1 break-words;
+  }
+  .journal-habit-title b {
+    @apply block text-base leading-6;
+  }
+  .journal-habit-title span:not(.journal-marker) {
+    @apply mt-1 block text-sm text-ink-3;
+  }
+  .journal-marker {
+    @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-input bg-done-soft text-done-ink;
+  }
+  .journal-controls {
+    @apply flex flex-wrap items-end gap-2;
+  }
+  .journal-controls label {
+    @apply min-w-0 flex-1;
+  }
+  .journal-habit progress {
+    @apply block h-1.5 w-full overflow-hidden rounded-full border-0 bg-surface-2;
+    accent-color: var(--color-done);
+  }
+  .journal-habit progress::-webkit-progress-bar {
+    background: var(--color-surface-2);
+  }
+  .journal-habit progress::-webkit-progress-value {
+    background: var(--color-done);
+  }
+  .journal-habit progress::-moz-progress-bar {
+    background: var(--color-done);
+  }
+  .journal-message {
+    @apply my-4 space-y-3 rounded-input bg-done-soft p-4 text-done-ink;
+  }
+  .journal-empty {
+    @apply flex flex-col items-center gap-4 border border-line-soft px-5 py-10 text-center shadow-none;
+  }
+  .journal-empty h2 {
+    @apply text-2xl font-semibold;
+  }
+  .journal-empty p {
+    @apply max-w-md text-ink-3;
+  }
+  .journal-footnote {
+    @apply my-8 text-center text-sm leading-6 text-ink-3;
+  }
 }

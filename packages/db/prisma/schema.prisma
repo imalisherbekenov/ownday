@@ -12,6 +12,7 @@ enum IdentityProvider {
   telegram
   email
   google
+  apple
 }
 enum HabitType {
   binary
@@ -45,6 +46,10 @@ model User {
   entries      Entry[]
   reminders    Reminder[]
   botSessions  BotSession[]
+  entryOperations EntryOperation[]
+  deviceSessions DeviceSession[]
+  habitOperations HabitOperation[]
+  deletedHabits HabitTombstone[]
 }
 
 model Identity {
@@ -68,6 +73,8 @@ model Habit {
   targetValue      Decimal?          @db.Decimal(12, 3)
   unit             String?
   sortOrder        Int               @default(0)
+  revision         Int               @default(0)
+  journalMetadata  Json              @default("{}")
   archivedAt       DateTime?
   createdAt        DateTime          @default(now())
   user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -75,7 +82,28 @@ model Habit {
   entries          Entry[]
   reminders        Reminder[]
   stats            HabitStats?
+  entryOperations  EntryOperation[]
   @@index([userId, archivedAt])
+}
+
+model HabitOperation {
+  userId      String   @db.Uuid
+  operationId String  @db.Uuid
+  habitId     String  @db.Uuid
+  payload     Json
+  result      Json
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([userId, operationId])
+  @@index([userId, habitId])
+}
+
+model HabitTombstone {
+  habitId String @id @db.Uuid
+  userId String @db.Uuid
+  deletedAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
 }
 
 model ScheduleVersion {
@@ -99,11 +127,29 @@ model Entry {
   clientId  String      @db.Uuid
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+  revision  Int         @default(0)
+  resetRevision Int     @default(0)
+  deleted   Boolean     @default(false)
   habit     Habit       @relation(fields: [habitId], references: [id], onDelete: Cascade)
   user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@unique([habitId, localDate])
   @@unique([clientId])
   @@index([userId, localDate])
+}
+
+model EntryOperation {
+  userId      String   @db.Uuid
+  operationId String   @db.Uuid
+  habitId     String   @db.Uuid
+  localDate   DateTime @db.Date
+  sequence    BigInt   @default(autoincrement()) @unique
+  payload     Json
+  result      Json
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  habit       Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  @@id([userId, operationId])
+  @@index([userId, sequence])
 }
 
 model Reminder {
@@ -117,8 +163,26 @@ model Reminder {
   nextFireAt DateTime
   user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   habit      Habit?          @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  deliveries ReminderDelivery[]
   @@index([userId])
   @@index([enabled, nextFireAt])
+}
+
+model ReminderDelivery {
+  id String @id @default(uuid()) @db.Uuid
+  reminderId String @db.Uuid
+  scheduledAt DateTime
+  localDate String @db.VarChar(10)
+  status String @default("pending")
+  attempts Int @default(0)
+  nextAttemptAt DateTime @default(now())
+  leaseToken String? @db.Uuid
+  leaseUntil DateTime?
+  lastError String?
+  completedAt DateTime?
+  reminder Reminder @relation(fields:[reminderId],references:[id],onDelete:Cascade)
+  @@unique([reminderId,scheduledAt])
+  @@index([status,nextAttemptAt,leaseUntil])
 }
 
 model BotSession {
@@ -148,4 +212,39 @@ model HabitTemplate {
   defaultType     HabitType
   locale          String
   @@index([locale, category])
+}
+
+model RateLimitWindow {
+  key       String   @id
+  hits      Int
+  expiresAt DateTime
+  @@index([expiresAt])
+}
+
+model AuthGrant {
+  hash         String   @id
+  purpose      String
+  subject      String
+  challenge    String?
+  expiresAt    DateTime
+  consumedAt   DateTime?
+  @@index([expiresAt])
+}
+
+model DeviceSession {
+  hash       String   @id
+  userId     String   @db.Uuid
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  revokedAt  DateTime?
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model AccountDeletionReceipt {
+  sessionHash String @id
+  userHash String
+  expiresAt DateTime
+  @@index([expiresAt])
 }

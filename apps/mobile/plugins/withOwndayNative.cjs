@@ -2,6 +2,7 @@ const {
   AndroidConfig,
   withAndroidManifest,
   withAppBuildGradle,
+  withProjectBuildGradle,
   withDangerousMod,
   withEntitlementsPlist,
   withXcodeProject,
@@ -33,153 +34,27 @@ function tokenColors(projectRoot) {
 }
 
 function androidSource(pkg, colors) {
-  return `package ${pkg}
-
-import android.content.Context
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import androidx.glance.GlanceId
-import androidx.glance.GlanceModifier
-import androidx.glance.action.ActionParameters
-import androidx.glance.action.actionParametersOf
-import androidx.glance.action.clickable
-import androidx.glance.appwidget.GlanceAppWidget
-import androidx.glance.appwidget.GlanceAppWidgetReceiver
-import androidx.glance.appwidget.action.ActionCallback
-import androidx.glance.appwidget.action.actionRunCallback
-import androidx.glance.appwidget.provideContent
-import androidx.glance.background
-import androidx.glance.layout.Alignment
-import androidx.glance.layout.Column
-import androidx.glance.layout.Row
-import androidx.glance.layout.Spacer
-import androidx.glance.layout.fillMaxSize
-import androidx.glance.layout.fillMaxWidth
-import androidx.glance.layout.height
-import androidx.glance.layout.padding
-import androidx.glance.layout.width
-import androidx.glance.text.FontWeight
-import androidx.glance.text.Text
-import androidx.glance.text.TextStyle
-import androidx.glance.unit.ColorProvider
-import org.json.JSONArray
-import org.json.JSONObject
-
-private const val SNAPSHOT_KEY = "${SNAPSHOT_KEY}"
-private const val PENDING_KEY = "${PENDING_KEY}"
-private const val PREFS = "ownday_widget"
-private val HabitIdKey = ActionParameters.Key<String>("habitId")
-
-private data class Habit(val id: String, val title: String, val done: Boolean, val value: Int, val target: Int?, val streak: Int)
-private data class Snapshot(val date: String, val habits: List<Habit>)
-
-private fun snapshot(context: Context): Snapshot {
-  val raw = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(SNAPSHOT_KEY, null)
-    ?: return Snapshot("", emptyList())
-  return runCatching {
-    val root = JSONObject(raw)
-    val values = root.getJSONArray("habits")
-    Snapshot(root.getString("localDate"), (0 until values.length()).map { index ->
-      val item = values.getJSONObject(index)
-      Habit(item.getString("id"), item.getString("title"), item.getBoolean("done"), item.getInt("value"),
-        if (item.isNull("target")) null else item.getInt("target"), item.getInt("streak"))
-    })
-  }.getOrDefault(Snapshot("", emptyList()))
-}
-
-private object Palette {
-  val surface = ColorProvider(Color(android.graphics.Color.parseColor("${colors.light.surface}")), Color(android.graphics.Color.parseColor("${colors.dark.surface}")))
-  val ink = ColorProvider(Color(android.graphics.Color.parseColor("${colors.light.ink}")), Color(android.graphics.Color.parseColor("${colors.dark.ink}")))
-  val neutral = ColorProvider(Color(android.graphics.Color.parseColor("${colors.light["ink-3"]}")), Color(android.graphics.Color.parseColor("${colors.dark["ink-3"]}")))
-  val done = ColorProvider(Color(android.graphics.Color.parseColor("${colors.light.done}")), Color(android.graphics.Color.parseColor("${colors.dark.done}")))
-  val streak = ColorProvider(Color(android.graphics.Color.parseColor("${colors.light.streak}")), Color(android.graphics.Color.parseColor("${colors.dark.streak}")))
-}
-
-class OwndayWidget : GlanceAppWidget() {
-  override suspend fun provideGlance(context: Context, id: GlanceId) {
-    provideContent { WidgetContent(snapshot(context)) }
+  let source = fs
+    .readFileSync(path.join(__dirname, "OwndayWidget.kt"), "utf8")
+    .replaceAll("__PACKAGE__", pkg);
+  for (const [key, token] of Object.entries({
+    SURFACE: "surface",
+    INK: "ink",
+    NEUTRAL: "ink-3",
+    DONE: "done",
+  })) {
+    for (const theme of ["light", "dark"])
+      source = source.replaceAll(
+        "__" + theme.toUpperCase() + "_" + key + "__",
+        colors[theme][token],
+      );
   }
-
-  @Composable private fun WidgetContent(data: Snapshot) {
-    Column(GlanceModifier.fillMaxSize().background(Palette.surface).padding(16.dp)) {
-      Text((data.habits.maxOfOrNull { it.streak } ?: 0).toString(), style = TextStyle(color = Palette.streak, fontWeight = FontWeight.Bold))
-      Spacer(GlanceModifier.height(8.dp))
-      data.habits.take(4).forEach { habit ->
-        Row(
-          GlanceModifier.fillMaxWidth().height(44.dp).clickable(actionRunCallback<ToggleHabitAction>(actionParametersOf(HabitIdKey to habit.id))),
-          verticalAlignment = Alignment.Vertical.CenterVertically
-        ) {
-          Text(if (habit.done) "✓" else "○", style = TextStyle(color = if (habit.done) Palette.done else Palette.neutral))
-          Spacer(GlanceModifier.width(8.dp))
-          Text(habit.title, style = TextStyle(color = if (habit.done) Palette.neutral else Palette.ink), maxLines = 1)
-          if (habit.target != null) Text("  " + habit.value + "/" + habit.target, style = TextStyle(color = Palette.neutral))
-        }
-      }
-    }
-  }
+  return source;
 }
-
-class ToggleHabitAction : ActionCallback {
-  override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
-    val habitId = parameters[HabitIdKey] ?: return
-    val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-    val root = JSONObject(prefs.getString(SNAPSHOT_KEY, null) ?: return)
-    val habits = root.getJSONArray("habits")
-    var status = "done"
-    for (index in 0 until habits.length()) {
-      val habit = habits.getJSONObject(index)
-      if (habit.getString("id") == habitId) {
-        status = if (habit.getBoolean("done")) "miss" else "done"
-        habit.put("done", status == "done")
-      }
-    }
-    val date = root.getString("localDate")
-    val pending = JSONArray(prefs.getString(PENDING_KEY, "[]"))
-    val clientId = "mobile:$habitId:$date"
-    if ((0 until pending.length()).none { pending.getJSONObject(it).getString("clientId") == clientId })
-      pending.put(JSONObject().put("habitId", habitId).put("localDate", date).put("status", status).put("clientId", clientId))
-    prefs.edit().putString(SNAPSHOT_KEY, root.toString()).putString(PENDING_KEY, pending.toString()).apply()
-    OwndayWidget().update(context, glanceId)
-  }
-}
-
-class OwndayWidgetReceiver : GlanceAppWidgetReceiver() {
-  override val glanceAppWidget = OwndayWidget()
-}
-`;
-}
-
 function bridgeSource(pkg) {
-  return `package ${pkg}
-
-import com.facebook.react.bridge.Promise
-import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContextBaseJavaModule
-import com.facebook.react.bridge.ReactMethod
-import com.facebook.react.ReactPackage
-import com.facebook.react.bridge.NativeModule
-import com.facebook.react.uimanager.ViewManager
-
-class OwndayWidgetBridge(context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
-  override fun getName() = "OwndayWidgetBridge"
-  @ReactMethod fun writeSnapshot(value: String, promise: Promise) {
-    reactApplicationContext.getSharedPreferences("ownday_widget", 0).edit().putString("${SNAPSHOT_KEY}", value).apply()
-    promise.resolve(null)
-  }
-  @ReactMethod fun takePendingMutations(promise: Promise) {
-    val prefs = reactApplicationContext.getSharedPreferences("ownday_widget", 0)
-    val value = prefs.getString("${PENDING_KEY}", "[]") ?: "[]"
-    prefs.edit().putString("${PENDING_KEY}", "[]").apply()
-    promise.resolve(value)
-  }
-}
-
-class OwndayWidgetPackage : ReactPackage {
-  override fun createNativeModules(context: ReactApplicationContext): List<NativeModule> = listOf(OwndayWidgetBridge(context))
-  override fun createViewManagers(context: ReactApplicationContext): List<ViewManager<*, *>> = emptyList()
-}
-`;
+  return fs
+    .readFileSync(path.join(__dirname, "OwndayWidgetBridge.kt"), "utf8")
+    .replaceAll("__PACKAGE__", pkg);
 }
 
 function withAndroidWidget(config) {
@@ -224,7 +99,7 @@ function withAndroidWidget(config) {
       write(path.join(java, "widget", "OwndayWidgetBridge.kt"), bridgeSource(`${pkg}.widget`));
       write(
         path.join(root, "app", "src", "main", "res", "xml", "ownday_widget_info.xml"),
-        `<?xml version="1.0" encoding="utf-8"?>\n<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android" android:minWidth="110dp" android:minHeight="110dp" android:minResizeWidth="110dp" android:minResizeHeight="110dp" android:resizeMode="horizontal|vertical" android:widgetCategory="home_screen" android:initialLayout="@layout/ownday_widget_loading" />\n`,
+        `<?xml version="1.0" encoding="utf-8"?>\n<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android" android:minWidth="110dp" android:minHeight="110dp" android:minResizeWidth="110dp" android:minResizeHeight="110dp" android:resizeMode="horizontal|vertical" android:widgetCategory="home_screen" android:updatePeriodMillis="1800000" android:initialLayout="@layout/ownday_widget_loading" />\n`,
       );
       write(
         path.join(root, "app", "src", "main", "res", "layout", "ownday_widget_loading.xml"),
@@ -267,10 +142,6 @@ function iosWidgetSource(colors) {
     .replaceAll("__DARK_STREAK__", encode(colors.dark.streak));
 }
 
-function iosBridgeSource() {
-  return `import Foundation\nimport React\nimport WidgetKit\n\n@objc(OwndayWidgetBridge)\nfinal class OwndayWidgetBridge: NSObject, RCTBridgeModule {\n  static func moduleName() -> String! { "OwndayWidgetBridge" }\n  static func requiresMainQueueSetup() -> Bool { false }\n\n  @objc func writeSnapshot(_ value: String, resolver resolve: RCTPromiseResolveBlock, rejecter reject: RCTPromiseRejectBlock) {\n    let defaults = UserDefaults(suiteName: "${APP_GROUP}")!\n    defaults.set(value, forKey: "${SNAPSHOT_KEY}")\n    WidgetCenter.shared.reloadAllTimelines()\n    resolve(nil)\n  }\n\n  @objc func takePendingMutations(_ resolve: RCTPromiseResolveBlock, rejecter reject: RCTPromiseRejectBlock) {\n    let defaults = UserDefaults(suiteName: "${APP_GROUP}")!\n    let data = defaults.data(forKey: "${PENDING_KEY}")\n    defaults.removeObject(forKey: "${PENDING_KEY}")\n    resolve(data.flatMap { String(data: $0, encoding: .utf8) } ?? "[]")\n  }\n}\n`;
-}
-
 function withIosWidget(config) {
   config = withEntitlementsPlist(config, (mod) => {
     mod.modResults["com.apple.security.application-groups"] = [APP_GROUP];
@@ -287,42 +158,75 @@ function withIosWidget(config) {
       );
       write(
         path.join(dir, "Info.plist"),
-        `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict><key>NSExtension</key><dict><key>NSExtensionPointIdentifier</key><string>com.apple.widgetkit-extension</string></dict></dict></plist>`,
+        `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict>
+<key>CFBundleDisplayName</key><string>Ownday</string>
+<key>CFBundleExecutable</key><string>$(EXECUTABLE_NAME)</string>
+<key>CFBundleIdentifier</key><string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+<key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
+<key>CFBundleName</key><string>$(PRODUCT_NAME)</string>
+<key>CFBundlePackageType</key><string>XPC!</string>
+<key>CFBundleShortVersionString</key><string>$(MARKETING_VERSION)</string>
+<key>CFBundleVersion</key><string>$(CURRENT_PROJECT_VERSION)</string>
+<key>NSExtension</key><dict><key>NSExtensionPointIdentifier</key><string>com.apple.widgetkit-extension</string></dict>
+</dict></plist>`,
       );
       write(
         path.join(dir, "OwndayWidget.entitlements"),
         `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict><key>com.apple.security.application-groups</key><array><string>${APP_GROUP}</string></array></dict></plist>`,
       );
-      write(path.join(root, config.name, "OwndayWidgetBridge.swift"), iosBridgeSource());
+      for (const file of [
+        "OwndayWidgetBridge.swift",
+        "OwndayWidgetBridge.m",
+        "WidgetStorage.swift",
+      ]) {
+        write(
+          path.join(root, config.name, file),
+          fs
+            .readFileSync(path.join(__dirname, file), "utf8")
+            .replaceAll("__APP_GROUP__", APP_GROUP),
+        );
+      }
+      write(
+        path.join(dir, "WidgetStorage.swift"),
+        fs
+          .readFileSync(path.join(__dirname, "WidgetStorage.swift"), "utf8")
+          .replaceAll("__APP_GROUP__", APP_GROUP),
+      );
       return mod;
     },
   ]);
   return withXcodeProject(config, (mod) => {
     const project = mod.modResults;
     const mainTarget = project.getFirstTarget().uuid;
-    project.addSourceFile(`${config.name}/OwndayWidgetBridge.swift`, {}, mainTarget);
-    if (project.pbxTargetByName("OwndayWidget")) return mod;
+    const mainGroup = project.getFirstProject().firstProject.mainGroup;
+    for (const file of [
+      "OwndayWidgetBridge.swift",
+      "OwndayWidgetBridge.m",
+      "WidgetStorage.swift",
+    ]) {
+      if (!project.hasFile(config.name + "/" + file))
+        project.addSourceFile(config.name + "/" + file, { target: mainTarget }, mainGroup);
+    }
+    if (project.pbxTargetByName("OwndayWidget") || project.pbxTargetByName('"OwndayWidget"'))
+      return mod;
+    // A single-target Expo template has no dependency/proxy sections yet.
+    project.hash.project.objects.PBXTargetDependency ??= {};
+    project.hash.project.objects.PBXContainerItemProxy ??= {};
     const target = project.addTarget(
       "OwndayWidget",
       "app_extension",
       "OwndayWidget",
       `${config.ios.bundleIdentifier}.widget`,
     );
-    project.addBuildPhase(
-      ["OwndayWidget/OwndayWidget.swift"],
-      "PBXSourcesBuildPhase",
-      "Sources",
-      target.uuid,
-    );
+    project.addBuildPhase([], "PBXSourcesBuildPhase", "Sources", target.uuid);
     project.addBuildPhase([], "PBXResourcesBuildPhase", "Resources", target.uuid);
     project.addBuildPhase([], "PBXFrameworksBuildPhase", "Frameworks", target.uuid);
-    const group = project.addPbxGroup(
-      ["OwndayWidget.swift", "Info.plist", "OwndayWidget.entitlements"],
-      "OwndayWidget",
-      "OwndayWidget",
-    );
-    const mainGroup = project.getFirstProject().firstProject.mainGroup;
+    const group = project.addPbxGroup([], "OwndayWidget", "OwndayWidget");
     project.addToPbxGroup(group.uuid, mainGroup);
+    for (const file of ["OwndayWidget.swift", "WidgetStorage.swift"])
+      project.addSourceFile(file, { target: target.uuid }, group.uuid);
+    for (const file of ["Info.plist", "OwndayWidget.entitlements"])
+      project.addFile(file, group.uuid);
     const settings = project.pbxXCBuildConfigurationSection();
     for (const key of Object.keys(settings)) {
       const build = settings[key];
@@ -336,15 +240,39 @@ function withIosWidget(config) {
             '"$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks"',
           SKIP_INSTALL: "YES",
           SWIFT_VERSION: "5.0",
+          MARKETING_VERSION: config.version ?? "1.0.0",
+          CURRENT_PROJECT_VERSION: config.ios.buildNumber ?? "1",
           TARGETED_DEVICE_FAMILY: '"1,2"',
         });
       }
     }
-    project.addTargetDependency(mainTarget, [target.uuid]);
     return mod;
   });
 }
 
 module.exports = function withOwndayNative(config) {
+  config = withProjectBuildGradle(config, (mod) => {
+    const marker = "// Ownday: keep CMake staging paths short for Windows + pnpm.";
+    if (!mod.modResults.contents.includes(marker)) {
+      const staging = `
+${marker}
+subprojects { nativeProject ->
+  ["com.android.library", "com.android.application"].each { pluginId ->
+    nativeProject.plugins.withId(pluginId) {
+      nativeProject.androidComponents.finalizeDsl { androidDsl ->
+        androidDsl.externalNativeBuild.cmake.buildStagingDirectory =
+          new File(rootProject.projectDir, "../../../.native-cxx/" + nativeProject.name)
+      }
+    }
+  }
+}
+`;
+      mod.modResults.contents = mod.modResults.contents.replace(
+        'apply plugin: "com.facebook.react.rootproject"',
+        staging + '\napply plugin: "com.facebook.react.rootproject"',
+      );
+    }
+    return mod;
+  });
   return withIosWidget(withAndroidWidget(config));
 };

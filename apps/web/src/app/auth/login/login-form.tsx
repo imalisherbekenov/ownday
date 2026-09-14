@@ -1,15 +1,24 @@
 "use client";
 import { useActionState } from "react";
+import { useInterfaceLocale } from "@/components/interface-locale";
 import { requestMagicLink, type MagicLinkState } from "../actions";
 const initialState: MagicLinkState = {};
 export function LoginForm() {
+  const { t } = useInterfaceLocale();
   const [state, action, pending] = useActionState(requestMagicLink, initialState);
   if (state.ok)
-    return <p className="text-ink-2">Проверьте почту — мы отправили ссылку для входа.</p>;
+    return (
+      <p className="text-ink-2" role="status">
+        {t(
+          "Проверь почту — мы отправили ссылку для входа.",
+          "Check your email for a sign-in link.",
+        )}
+      </p>
+    );
   return (
     <form action={action} className="flex flex-col gap-3">
       <label className="label" htmlFor="email">
-        Почта
+        {t("Почта", "Email")}
       </label>
       <input
         className="control"
@@ -29,7 +38,9 @@ export function LoginForm() {
         </p>
       ) : null}
       <button className="primary" disabled={pending} type="submit">
-        {pending ? "Отправляем…" : "Получить ссылку для входа"}
+        {pending
+          ? t("Отправляем…", "Sending…")
+          : t("Получить ссылку для входа", "Email me a sign-in link")}
       </button>
     </form>
   );

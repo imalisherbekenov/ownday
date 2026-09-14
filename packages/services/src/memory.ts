@@ -1,4 +1,7 @@
 import { randomUUID } from "node:crypto";
+import { localDateFor } from "@ownday/core";
+import { applyEntryChange } from "./entry-operation.js";
+import type { EntryOperationResult } from "./repositories.js";
 import type {
   HabitRepository,
   EntryRepository,
@@ -67,16 +70,30 @@ export class InMemoryHabitRepository implements HabitRepository {
       .sort((a, b) => a.sortOrder - b.sortOrder)
       .map((h) => structuredClone(h));
   }
-  async archive(id: string, userId: string, at: Date) {
+  async archive(id: string, userId: string, at: Date, localDate = localDateFor(at, "UTC", 4)) {
     const h = this.habits.get(id);
     if (!h || h.userId !== userId) return false;
+    if (h.archivedAt) return true;
     h.archivedAt = at;
+    h.archivedOn = localDate;
+    h.inactiveRanges = [...(h.inactiveRanges ?? []), { from: localDate, through: null }];
     return true;
   }
-  async restore(id: string, userId: string) {
+  async restore(
+    id: string,
+    userId: string,
+    at = new Date(),
+    localDate = localDateFor(at, "UTC", 4),
+  ) {
     const h = this.habits.get(id);
     if (!h || h.userId !== userId) return false;
     h.archivedAt = null;
+    h.archivedOn = null;
+    h.inactiveRanges = (h.inactiveRanges ?? []).map((range) =>
+      range.through === null
+        ? { ...range, through: localDate < range.from ? range.from : localDate }
+        : range,
+    );
     return true;
   }
   async reorder(userId: string, ids: string[]) {
@@ -85,9 +102,9 @@ export class InMemoryHabitRepository implements HabitRepository {
       if (h?.userId === userId) h.sortOrder = n;
     });
   }
-  async delete(id: string, userId: string) {
+  async delete(id: string, userId: string, requireArchived = false) {
     const h = this.habits.get(id);
-    if (!h || h.userId !== userId) return false;
+    if (!h || h.userId !== userId || (requireArchived && !h.archivedAt)) return false;
     this.habits.delete(id);
     this.stats.delete(id);
     return true;
@@ -105,54 +122,100 @@ export class InMemoryTemplateRepository implements TemplateRepository {
 }
 export class InMemoryEntryRepository implements EntryRepository {
   entries = new Map<string, HabitEntry>();
-  async findByClientId(c: string) {
-    return structuredClone([...this.entries.values()].find((e) => e.clientId === c) ?? null);
-  }
-  async upsert(i: Parameters<EntryRepository["upsert"]>[0]) {
-    const byClient = [...this.entries.values()].find((e) => e.clientId === i.clientId);
-    if (byClient) return structuredClone(byClient);
-    const key = `${i.habitId}:${i.localDate}`,
-      old = this.entries.get(key),
-      now = new Date();
-    const e: HabitEntry = {
-      id: old?.id ?? randomUUID(),
-      createdAt: old?.createdAt ?? now,
-      updatedAt: now,
-      ...i,
+  operations = new Map<
+    string,
+    { habitId: string; localDate: string; result: EntryOperationResult }
+  >();
+  async applyOperation(
+    input: Parameters<EntryRepository["applyOperation"]>[0],
+    context: Parameters<EntryRepository["applyOperation"]>[1],
+  ) {
+    if (
+      context.habit.userId !== input.userId ||
+      context.habit.id !== input.habitId ||
+      context.user.id !== input.userId
+    )
+      throw new Error("HABIT_NOT_FOUND");
+    const operationKey = `${input.userId}:${input.operationId}`;
+    const previous = this.operations.get(operationKey);
+    if (previous) {
+      if (previous.habitId !== input.habitId || previous.localDate !== input.localDate)
+        throw new Error("OPERATION_ID_REUSED");
+      return structuredClone(previous.result);
+    }
+    const key = `${input.habitId}:${input.localDate}`;
+    const old = this.entries.get(key) ?? null;
+    let effective = input,
+      blocked = false;
+    if (input.dependsOn) {
+      const dependency = this.operations.get(`${input.userId}:${input.dependsOn}`);
+      if (
+        !dependency ||
+        dependency.habitId !== input.habitId ||
+        dependency.localDate !== input.localDate
+      )
+        throw new Error("DEPENDENCY_NOT_FOUND");
+      effective = { ...input, baseRevision: dependency.result.revision };
+      blocked = dependency.result.outcome === "conflict";
+    }
+    const conflict = (reason: string) => ({
+      next: null,
+      result: {
+        operationId: input.operationId,
+        outcome: "conflict" as const,
+        revision: old?.revision ?? 0,
+        entry: old && !old.deleted ? old : null,
+        state: old,
+        reason,
+      },
+    });
+    const transition = () => {
+      if (blocked) return conflict("DEPENDENCY_CONFLICT");
+      try {
+        return applyEntryChange(effective, context.habit, context.user, old, randomUUID());
+      } catch (error) {
+        if (
+          input.conflictOnIneligible &&
+          error instanceof Error &&
+          ["HABIT_ARCHIVED", "HABIT_NOT_DUE", "ENTRY_DATE_OUT_OF_RANGE"].includes(error.message)
+        )
+          return conflict(error.message);
+        throw error;
+      }
     };
-    this.entries.set(key, e);
-    return structuredClone(e);
-  }
-  async setValue(i: Parameters<EntryRepository["setValue"]>[0]) {
-    const key = `${i.habitId}:${i.localDate}`,
-      old = this.entries.get(key),
-      now = new Date();
-    const e: HabitEntry = {
-      id: old?.id ?? randomUUID(),
-      createdAt: old?.createdAt ?? now,
-      updatedAt: now,
-      ...i,
-      clientId: old?.clientId ?? randomUUID(),
-    };
-    this.entries.set(key, e);
-    return structuredClone(e);
-  }
-  async delete(h: string, d: string, u: string) {
-    const key = `${h}:${d}`,
-      e = this.entries.get(key);
-    return !!e && e.userId === u && this.entries.delete(key);
+    const change =
+      old?.clientId === input.operationId
+        ? {
+            next: null,
+            result: {
+              operationId: input.operationId,
+              outcome: "applied" as const,
+              revision: old.revision ?? 0,
+              entry: old.deleted ? null : old,
+            },
+          }
+        : transition();
+    if (change.next) this.entries.set(key, structuredClone(change.next));
+    this.operations.set(operationKey, {
+      habitId: input.habitId,
+      localDate: input.localDate,
+      result: structuredClone(change.result),
+    });
+    return structuredClone(change.result);
   }
   async deleteByHabit(habitId: string) {
     for (const [key, e] of this.entries) if (e.habitId === habitId) this.entries.delete(key);
+    for (const [key, operation] of this.operations)
+      if (operation.habitId === habitId) this.operations.delete(key);
   }
   async listForHabit(h: string, t?: string) {
     return [...this.entries.values()]
-      .filter((e) => e.habitId === h && (!t || e.localDate <= t))
+      .filter((e) => !e.deleted && e.habitId === h && (!t || e.localDate <= t))
       .map((e) => structuredClone(e));
   }
   async listForUser(u: string, f: string, t: string) {
     return [...this.entries.values()]
-      .filter((e) => e.userId === u && e.localDate >= f && e.localDate <= t)
+      .filter((e) => !e.deleted && e.userId === u && e.localDate >= f && e.localDate <= t)
       .map((e) => structuredClone(e));
   }
 }

@@ -16,7 +16,8 @@ export async function middleware(request: NextRequest) {
 // which is why the test reads it back off `config` instead of holding a copy.
 // The file-extension branch is written `[.]`: inside a plain string `\.` is not an
 // escape, and TypeScript would quietly hand the regex a bare dot.
-export const config: { matcher: [string] } = {
+export const config: { matcher: [string]; runtime: "nodejs" } = {
+  runtime: "nodejs",
   // API routes own their own cookie writes, and static assets carry no session.
   matcher: ["/((?!api/|api$|_next/static|_next/image|.*[.][^/]+$).*)"],
 };

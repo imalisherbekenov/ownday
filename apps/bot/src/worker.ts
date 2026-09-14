@@ -1,67 +1,103 @@
 import type { Bot } from "grammy";
+import { localDateFor } from "@ownday/core";
+import type { ReminderDeliveryQueue } from "@ownday/services";
 import type { HandlerDeps } from "./handlers.js";
 import { t } from "./i18n/index.js";
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-export async function sendWithRetry(
+
+export async function deliverOne(
   bot: Bot<any>,
-  chatId: string,
-  text: string,
-  reply_markup: any,
+  d: HandlerDeps,
+  queue: ReminderDeliveryQueue,
+  now = new Date(),
 ) {
-  for (let n = 0; n < 3; n++)
-    try {
-      return await bot.api.sendMessage(chatId, text, { reply_markup });
-    } catch (e: any) {
-      const retry = e?.error?.parameters?.retry_after ?? e?.parameters?.retry_after;
-      if (!retry || n === 2) throw e;
-      await sleep(retry * 1000);
+  const job = await queue.claim(now);
+  if (!job) return false;
+  const r = job.reminder,
+    token = job.leaseToken!;
+  try {
+    const today = localDateFor(now, r.user.timezone, r.user.dayStartHour);
+    const identity = await d.users.findIdentityForUser(r.userId, "telegram");
+    const rows = r.habitId ? await d.services.listHabitsForToday(r.userId, now) : [];
+    const row = rows.find((item) => item.habit.id === r.habitId);
+    if (
+      !r.enabled ||
+      !identity ||
+      !row ||
+      job.localDate !== today ||
+      row.entry?.status === "done" ||
+      row.entry?.status === "skip"
+    ) {
+      await queue.complete(job.id, token, "skipped", new Date());
+      return true;
     }
-}
-export function startReminderWorker(bot: Bot<any>, d: HandlerDeps) {
-  let running = false;
-  const tick = async () => {
-    if (running) return;
-    running = true;
-    const now = new Date();
+    const controller = new AbortController(),
+      timeout = setTimeout(() => controller.abort(), 30000);
     try {
-      for (const r of await d.services.dueReminders(now, 100))
-        try {
-          const u = await d.users.findById(r.userId),
-            identity = await d.users.findIdentityForUser(r.userId, "telegram"),
-            rows = r.habitId ? await d.services.listHabitsForToday(r.userId, now) : [];
-          if (!u || !identity) continue;
-          const row = rows.find((x) => x.habit.id === r.habitId);
-          if (!row) {
-            await d.services.advanceReminder(r.id, now);
-            continue;
-          }
-          const title = row.habit.title;
-          await sendWithRetry(bot, identity.externalId, t(u.locale, "reminder", { title }), {
-            inline_keyboard: row
-              ? [
-                  [
-                    {
-                      text: t(u.locale, "done"),
-                      callback_data: `m:${row.habit.id}:${row.localDate}:d`,
-                    },
-                    {
-                      text: t(u.locale, "skip"),
-                      callback_data: `m:${row.habit.id}:${row.localDate}:s`,
-                    },
-                  ],
-                  [{ text: "+1h", callback_data: `s:${r.id}` }],
-                ]
-              : [],
-          });
-          await d.services.advanceReminder(r.id, now);
-        } catch (e) {
-          console.error("reminder failed", r.id, e);
-        }
+      await bot.api.sendMessage(
+        identity.externalId,
+        t(r.user.locale === "ru" ? "ru" : "en", "reminder", { title: row.habit.title }),
+        {
+          reply_markup: {
+            inline_keyboard: [
+              [
+                {
+                  text: t(r.user.locale === "ru" ? "ru" : "en", "done"),
+                  callback_data: `m:${row.habit.id}:${row.localDate}:d`,
+                },
+                {
+                  text: t(r.user.locale === "ru" ? "ru" : "en", "skip"),
+                  callback_data: `m:${row.habit.id}:${row.localDate}:s`,
+                },
+              ],
+              [{ text: "+1h", callback_data: `s:${r.id}` }],
+            ],
+          },
+        },
+        controller.signal as Parameters<typeof bot.api.sendMessage>[3],
+      );
+    } finally {
+      clearTimeout(timeout);
+    }
+    await queue.complete(job.id, token, "sent", new Date());
+  } catch (error) {
+    const cause = error as { error_code?: number; parameters?: { retry_after?: number } };
+    const code = Number.isInteger(cause.error_code)
+      ? `TELEGRAM_${cause.error_code}`
+      : "DELIVERY_UNCONFIRMED";
+    await queue.fail(
+      job.id,
+      token,
+      new Date(),
+      code,
+      cause.parameters?.retry_after,
+      [400, 403, 404].includes(cause.error_code ?? 0),
+    );
+    console.error("reminder delivery deferred", job.id, code);
+  }
+  return true;
+}
+export function startReminderWorker(bot: Bot<any>, d: HandlerDeps, queue: ReminderDeliveryQueue) {
+  let running = false,
+    stopped = false;
+  const tick = async () => {
+    if (running || stopped) return;
+    running = true;
+    try {
+      await queue.prepare(new Date());
+      for (let count = 0; count < 30 && !stopped; count++)
+        if (!(await deliverOne(bot, d, queue))) break;
+    } catch {
+      console.error("reminder queue iteration failed");
     } finally {
       running = false;
     }
   };
   void tick();
-  const timer = setInterval(() => void tick(), 60_000);
-  return () => clearInterval(timer);
+  const timer = setInterval(() => {
+    void tick();
+  }, 15000);
+  return () => {
+    stopped = true;
+    clearInterval(timer);
+  };
 }

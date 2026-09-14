@@ -74,7 +74,7 @@ export async function saveHabitAction(id: string | undefined, data: FormData) {
       now: new Date(),
     });
   }
-  revalidatePath("/");
+  revalidatePath("/today");
   revalidatePath("/habits");
   redirect("/habits");
 }

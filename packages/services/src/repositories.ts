@@ -1,4 +1,4 @@
-import type { EntryStatus, LocalDate } from "@ownday/core";
+import type { EntryStatus, LocalDate, EntryOperation } from "@ownday/core";
 import type {
   CreateHabitInput,
   EntrySource,
@@ -12,13 +12,14 @@ import type {
   User,
 } from "./types.js";
 
-export type SetEntryValueInput = {
+export type MarkEntryInput = {
   userId: string;
   habitId: string;
   localDate: LocalDate;
-  value: number;
+  value?: number;
   status: EntryStatus;
   source: EntrySource;
+  clientId: string;
 };
 
 export interface HabitRepository {
@@ -26,14 +27,14 @@ export interface HabitRepository {
   update(id: string, userId: string, input: UpdateHabitInput): Promise<Habit | null>;
   findById(id: string): Promise<Habit | null>;
   listByUser(userId: string, includeArchived?: boolean): Promise<Habit[]>;
-  archive(id: string, userId: string, at: Date): Promise<boolean>;
-  restore(id: string, userId: string): Promise<boolean>;
+  archive(id: string, userId: string, at: Date, localDate?: string): Promise<boolean>;
+  restore(id: string, userId: string, at?: Date, localDate?: string): Promise<boolean>;
   /**
    * Стирает привычку насовсем вместе с её статистикой. Отметки и напоминания
    * снимает вызывающий: в базе за них отвечает каскад, в памяти — никто, и
    * договориться об этом надо в одном месте, а не в двух реализациях.
    */
-  delete(id: string, userId: string): Promise<boolean>;
+  delete(id: string, userId: string, requireArchived?: boolean): Promise<boolean>;
   reorder(userId: string, ids: string[]): Promise<void>;
   writeStats(stats: HabitStats): Promise<void>;
 }
@@ -42,22 +43,30 @@ export interface TemplateRepository {
 }
 
 export interface EntryRepository {
-  findByClientId(clientId: string): Promise<HabitEntry | null>;
-  upsert(input: {
-    userId: string;
-    habitId: string;
-    localDate: LocalDate;
-    status: EntryStatus;
-    value?: number;
-    source: EntrySource;
-    clientId: string;
-  }): Promise<HabitEntry>;
-  setValue(input: SetEntryValueInput): Promise<HabitEntry>;
-  delete(habitId: string, localDate: LocalDate, userId: string): Promise<boolean>;
+  applyOperation(
+    input: EntryOperationInput,
+    context: { habit: Habit; user: User },
+  ): Promise<EntryOperationResult>;
   deleteByHabit(habitId: string): Promise<void>;
   listForHabit(habitId: string, through?: LocalDate): Promise<HabitEntry[]>;
   listForUser(userId: string, from: LocalDate, through: LocalDate): Promise<HabitEntry[]>;
 }
+
+export type EntryOperationInput = EntryOperation & {
+  userId: string;
+  source: EntrySource;
+  now: Date;
+  conflictOnIneligible?: boolean;
+};
+export type EntryOperationResult = {
+  operationId: string;
+  outcome: "applied" | "conflict";
+  revision: number;
+  entry: HabitEntry | null;
+  /** Includes a tombstone for synchronization; entry remains the legacy visible value. */
+  state?: HabitEntry | null;
+  reason?: string;
+};
 
 export interface UserRepository {
   findById(id: string): Promise<User | null>;
